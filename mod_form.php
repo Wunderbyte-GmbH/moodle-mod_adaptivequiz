@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/adaptivequiz/locallib.php');
 
+use local_catquiz\catquiz_handler;
 use mod_adaptivequiz\local\repository\questions_repository;
 
 /**
@@ -35,6 +36,8 @@ use mod_adaptivequiz\local\repository\questions_repository;
 class mod_adaptivequiz_mod_form extends moodleform_mod {
 
     public function definition() {
+        global $CFG;
+
         $mform = $this->_form;
 
         // Adding the "general" fieldset, where all the common settings are showed.
@@ -164,6 +167,13 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
         $mform->addHelpButton('grademethod', 'grademethod', 'adaptivequiz');
         $mform->setDefault('grademethod', ADAPTIVEQUIZ_GRADEHIGHEST);
         $mform->disabledIf('grademethod', 'attempts', 'eq', 1);
+
+        // Introduce special catquiz settings.
+        // But only if catquiz is installed on this machine.
+        if (class_exists("local_catquiz\catquiz_handler")) {
+
+            catquiz_handler::instance_form_definition($mform);
+        }
 
         // Add standard elements, common to all modules.
         $this->standard_coursemodule_elements();
