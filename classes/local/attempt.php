@@ -26,6 +26,8 @@ namespace mod_adaptivequiz\local;
 
 use coding_exception;
 use dml_exception;
+use local_catquiz\catquiz;
+use local_catquiz\catquiz_handler;
 use mod_adaptivequiz\local\attempt\attempt_state;
 use moodle_exception;
 use question_bank;
@@ -348,6 +350,21 @@ class attempt {
      * @return int a question id
      */
     public function return_random_question($questions) {
+
+        // We might want to get the next question id from the catquiz engine.
+        if (class_exists("local_catquiz\catquiz_handler")) {
+
+            // First check if we use the catquiz in this quiz.
+            // The setting is transmitted in the mod_form of this instance.
+            if (catquiz_handler::use_catquiz($this->adaptivequiz->id, 'mod_adaptivequiz')) {
+                $nextquestion = catquiz::get_next_question(
+                    $this->adpqattempt->id,
+                    $this->adaptivequiz->id,
+                    'mod_adaptivequiz');
+                return (int)$nextquestion['questionid'];
+            }
+        }
+
         if (empty($questions)) {
             return 0;
         }
