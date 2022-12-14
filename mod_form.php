@@ -27,7 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/adaptivequiz/locallib.php');
 
-use local_catquiz\catquiz_handler;
 use mod_adaptivequiz\local\repository\questions_repository;
 
 /**
@@ -171,8 +170,7 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
         // Introduce special catquiz settings.
         // But only if catquiz is installed on this machine.
         if (class_exists("local_catquiz\catquiz_handler")) {
-
-            catquiz_handler::instance_form_definition($mform);
+            \local_catquiz\catquiz_handler::instance_form_definition($mform, $this->context);
         }
 
         // Add standard elements, common to all modules.
@@ -268,5 +266,17 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
         return questions_repository::count_adaptive_questions_in_pool_with_level($qcategoryidlist, $startinglevel) > 0
             ? ''
             : get_string('questionspoolerrornovalidstartingquestions', 'adaptivequiz');
+    }
+
+    /**
+     * Sets the current values handled by services in case of update.
+     *
+     * @param object $defaultvalues default values to populate the form with.
+     */
+    public function set_data($defaultvalues) {
+        if (class_exists("local_catquiz\catquiz_handler")) {
+            \local_catquiz\catquiz_handler::instance_form_before_set_data($defaultvalues);
+        }
+        parent::set_data($defaultvalues);
     }
 }

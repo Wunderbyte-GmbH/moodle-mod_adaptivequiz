@@ -118,6 +118,10 @@ function adaptivequiz_add_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_
     // Update related grade item.
     adaptivequiz_grade_item_update($adaptivequiz);
 
+    if (class_exists("local_catquiz\catquiz_handler")) {
+        \local_catquiz\catquiz_handler::instance_form_save($adaptivequiz, $instance, 'mod_adaptivequiz');
+    }
+
     return $instance;
 }
 
@@ -191,6 +195,9 @@ function adaptivequiz_update_instance(stdClass $adaptivequiz, mod_adaptivequiz_m
     } else {
         adaptivequiz_grade_item_update($adaptivequiz);
     }
+    if (class_exists("local_catquiz\catquiz_handler")) {
+        \local_catquiz\catquiz_handler::instance_form_save($adaptivequiz, $instanceid, 'mod_adaptivequiz');
+    }
 
     return $instanceid;
 }
@@ -235,6 +242,10 @@ function adaptivequiz_delete_instance($id) {
 
     // Delete the grade item.
     adaptivequiz_grade_item_delete($adaptivequiz);
+
+    if (class_exists("local_catquiz\catquiz_handler")) {
+        \local_catquiz\catquiz_handler::delete_settings('mod_adaptivequiz', $id);
+    }
 
     return true;
 }
