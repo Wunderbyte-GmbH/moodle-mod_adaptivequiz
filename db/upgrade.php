@@ -27,9 +27,10 @@
  * Defines upgrade steps for the plugin.
  *
  * @param mixed $oldversion
+ * @return bool True on success.
  */
 function xmldb_adaptivequiz_upgrade($oldversion) {
-    global $CFG, $DB;
+    global $DB;
 
     $dbman = $DB->get_manager();
 
@@ -80,6 +81,17 @@ function xmldb_adaptivequiz_upgrade($oldversion) {
         }
 
         upgrade_mod_savepoint(true, 2022110200, 'adaptivequiz');
+    }
+
+    if ($oldversion < 2023022100) {
+        $table = new xmldb_table('adaptivequiz');
+        $field = new xmldb_field('catmodel', XMLDB_TYPE_CHAR, 255);
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2023022100, 'adaptivequiz');
     }
 
     return true;
