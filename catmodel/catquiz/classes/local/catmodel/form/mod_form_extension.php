@@ -30,7 +30,9 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class mod_form_extension implements
-    catmodel_mod_form_modifier, catmodel_mod_form_validator, catmodel_mod_form_data_preprocessor {
+    catmodel_mod_form_modifier,
+    catmodel_mod_form_validator,
+    catmodel_mod_form_data_preprocessor {
 
     /**
      * Implementation of interface, {@see catmodel_mod_form_modifier::definition_after_data_callback()}.
@@ -38,22 +40,19 @@ final class mod_form_extension implements
      * Adds several custom elements to the form.
      *
      * @param MoodleQuickForm $form
-     * @return array
      */
-    public function definition_after_data_callback(MoodleQuickForm $form): array {
+    public function definition_callback(MoodleQuickForm $form): void {
 
-        $data = $form->exportValues();
+      //  $data = $form->exportValues();
 
-        if ($data['catmodel'] === 'catquiz') {
+      //  if ($data['catmodel'] === 'catquiz') {
             $formelements = catquiz_handler::instance_form_definition($form);
 
             // At this point, we also apply the values we get from the template to the whole mform.
 
             catquiz_handler::set_data_after_definition($form);
 
-        }
-
-        return $formelements;
+       // }
     }
 
     /**

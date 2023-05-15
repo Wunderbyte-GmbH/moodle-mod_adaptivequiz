@@ -96,7 +96,7 @@ final class mod_form_extension implements
      * @param array $formdefaultvalues
      * @return array
      */
-    public function data_preprocessing_callback(array $formdefaultvalues): array {
+    public function data_preprocessing_callback(array $formdefaultvalues, $form = null ): array {
         global $DB;
 
         $helloworldsettings = $DB->get_record('catmodel_helloworld', ['adaptivequizid' => $formdefaultvalues['instance']], '*',
