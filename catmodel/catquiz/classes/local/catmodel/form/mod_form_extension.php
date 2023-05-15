@@ -42,17 +42,10 @@ final class mod_form_extension implements
      * @param MoodleQuickForm $form
      */
     public function definition_callback(MoodleQuickForm $form): void {
+        $formelements = catquiz_handler::instance_form_definition($form);
 
-      //  $data = $form->exportValues();
-
-      //  if ($data['catmodel'] === 'catquiz') {
-            $formelements = catquiz_handler::instance_form_definition($form);
-
-            // At this point, we also apply the values we get from the template to the whole mform.
-
-            catquiz_handler::set_data_after_definition($form);
-
-       // }
+        // At this point, we also apply the values we get from the template to the whole mform.
+        catquiz_handler::set_data_after_definition($form);
     }
 
     /**
