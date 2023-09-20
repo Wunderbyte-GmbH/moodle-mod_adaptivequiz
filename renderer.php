@@ -90,7 +90,7 @@ class mod_adaptivequiz_renderer extends plugin_renderer_base {
             new moodle_url('/mod/adaptivequiz/attempt.php', ['cmid' => $cmid, 'sesskey' => sesskey()]),
             get_string('startattemptbtn', 'adaptivequiz'),
             'post',
-            true
+            single_button::BUTTON_PRIMARY
         ));
     }
 
