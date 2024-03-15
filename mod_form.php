@@ -418,7 +418,7 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
 
         $form->addElement('header', 'catmodelheading', get_string('modformcatmodelheading', 'adaptivequiz'));
 
-        $options = ['' => ''];
+        $options = ['empty' => ''];
         foreach (array_keys($catmodelplugins) as $pluginname) {
             $options[$pluginname] = get_string('pluginname', "adaptivequizcatmodel_$pluginname");
         }
