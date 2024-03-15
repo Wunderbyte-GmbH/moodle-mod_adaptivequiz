@@ -409,6 +409,10 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
         if (!$catmodelplugins = core_component::get_plugin_list('adaptivequizcatmodel')) {
             return;
         }
+        // Since selection of hello world plugin can cause errors, we exclude selection of this plugin for the moment.
+        if (isset($catmodelplugins['helloworld'])) {
+            unset($catmodelplugins['helloworld']);
+        }
 
         $PAGE->requires->js_call_amd('mod_adaptivequiz/cat_model_chooser', 'init');
 
