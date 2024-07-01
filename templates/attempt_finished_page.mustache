@@ -40,7 +40,8 @@
             <button id="secureclosebutton" class="btn btn-primary">{{#str}} continue, core {{/str}}</button>
         {{/browsersecurityenabled}}
         {{^browsersecurityenabled}}
-            {{{continuebutton}}}
+        <a href="{{backurl}}" class="btn btn-secondary">{{backtext}}</a>
+        <a href="{{continueurl}}" class="btn btn-primary">{{continuetext}}</a>
         {{/browsersecurityenabled}}
     </div>
 </div>
