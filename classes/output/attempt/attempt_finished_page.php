@@ -68,7 +68,8 @@ class attempt_finished_page implements renderable, templatable {
         global $PAGE;
 
         $page = new self();
-        $page->continueurl = new moodle_url('/mod/adaptivequiz/view.php', ['id' => $cm->id]);
+        $page->continueurl = new moodle_url('/course/view.php', ['id' => $cm->course]);
+        $page->backurl = new moodle_url('/mod/adaptivequiz/view.php', ['id' => $cm->id]);
         $page->browsersecurityenabled = $adaptivequiz->browsersecurity;
 
         if ($adaptivequiz->catmodel) {
@@ -99,6 +100,10 @@ class attempt_finished_page implements renderable, templatable {
     public function export_for_template(renderer_base $output): array {
         return [
             'feedback' => $this->feedback,
+            'continueurl' => $this->continueurl,
+            'backurl' => $this->backurl,
+            'continuetext' => 'Weiter zum Kurs', 
+            'backtext' => 'Zurück zum Test',
             'continuebutton' => $output->continue_button($this->continueurl),
             'browsersecurityenabled' => $this->browsersecurityenabled,
         ];
