@@ -102,8 +102,6 @@ class attempt_finished_page implements renderable, templatable {
             'feedback' => $this->feedback,
             'continueurl' => $this->continueurl,
             'backurl' => $this->backurl,
-            'continuetext' => 'Weiter zum Kurs', 
-            'backtext' => 'Zurück zum Test',
             'continuebutton' => $output->continue_button($this->continueurl),
             'browsersecurityenabled' => $this->browsersecurityenabled,
         ];
