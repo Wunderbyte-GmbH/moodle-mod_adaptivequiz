@@ -244,5 +244,5 @@ $string['lowlevelusers'] = 'Users below the question-level';
 $string['user'] = 'User';
 $string['result'] = 'Result';
 
-$string['btnbacktotest'] = 'Return to Test';
-$string['btncontinuetocourse'] = 'Continue to Course';
+$string['btnbacktotest'] = 'Return to test';
+$string['btncontinuetocourse'] = 'Continue to course';
