@@ -243,3 +243,6 @@ $string['midlevelusers'] = 'Users near the question-level';
 $string['lowlevelusers'] = 'Users below the question-level';
 $string['user'] = 'User';
 $string['result'] = 'Result';
+
+$string['btnbacktotest'] = 'Return to test';
+$string['btncontinuetocourse'] = 'Continue to course';
