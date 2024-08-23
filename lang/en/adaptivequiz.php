@@ -246,3 +246,5 @@ $string['result'] = 'Result';
 
 $string['btnbacktotest'] = 'Return to test';
 $string['btncontinuetocourse'] = 'Continue to course';
+
+$string['subplugintype_adaptivequizcatmodel'] = 'CAT model';

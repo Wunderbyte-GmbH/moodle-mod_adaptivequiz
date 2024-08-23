@@ -27,3 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['btnbacktotest'] = 'Zurück zum Test';
 $string['btncontinuetocourse'] = 'Weiter zum Kurs';
+
+
+$string['subplugintype_adaptivequizcatmodel'] = 'CAT-Model';
