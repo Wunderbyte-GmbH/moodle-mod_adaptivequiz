@@ -75,6 +75,8 @@ class attempt_finished_page implements renderable, templatable {
         if ($adaptivequiz->catmodel) {
             // Try wire up the custom feedback from the sub-plugin being used. If it's implemented in a sub-plugin, it always has
             // a precedence over the default feedback provided by the activity.
+            $feedback->attemptfeedback = !empty($adaptivequiz->attemptfeedback) ? $adaptivequiz->attemptfeedback : '';
+
             $pluginswithfunction = get_plugin_list_with_function('adaptivequizcatmodel', 'attempt_finished_feedback');
             $catmodelcomponentname = 'adaptivequizcatmodel_' . $adaptivequiz->catmodel;
             if (array_key_exists($catmodelcomponentname, $pluginswithfunction)) {
@@ -99,6 +101,7 @@ class attempt_finished_page implements renderable, templatable {
      */
     public function export_for_template(renderer_base $output): array {
         return [
+            'attemptfeedback' => $this->attemptfeedback,
             'feedback' => $this->feedback,
             'continueurl' => $this->continueurl,
             'backurl' => $this->backurl,
