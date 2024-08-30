@@ -28,8 +28,10 @@ use mod_adaptivequiz\local\itemadministration\default_item_administration_factor
 use mod_adaptivequiz\local\itemadministration\item_administration_factory;
 use mod_adaptivequiz\local\question\questions_answered_summary_provider;
 use mod_adaptivequiz\local\report\questions_difficulty_range;
+use moodle_exception;
 use question_bank;
 use question_engine;
+use question_out_of_sequence_exception;
 use question_usage_by_activity;
 use stdClass;
 
@@ -85,7 +87,48 @@ final class adaptive_quiz_session {
     public function process_item_result(attempt $attempt, int $attemptedslot): void {
         $currenttime = time();
 
-        $this->quba->process_all_actions($currenttime);
+        try {
+            $this->quba->process_all_actions($currenttime);
+        } catch (question_out_of_sequence_exception $e) {
+            $debuginfo = $e->debuginfo;
+            $attemptdata = $attempt->read_attempt_data();
+            $questionusageid = $this->quba->get_id();
+            $catquizattemptid = $attemptdata->id;
+            $userid = $attemptdata->userid;
+            $attemptedquestions = [];
+            $attemptiterator = $this->quba->get_attempt_iterator();
+            foreach ($attemptiterator as $slot => $qa) {
+                $data = [
+                    'slot' => $slot,
+                    'sequencecheckcount' => $qa->get_sequence_check_count(),
+                    'question' => [
+                        'qtype' => get_class($qa->get_question()->qtype),
+                        'id' => $qa->get_question()->id,
+                        'idnumber' => $qa->get_question()->idnumber,
+                        'last_step_modified' => $qa->get_last_step()->get_timecreated(),
+                        'last_step_modified_readable' => userdate($qa->get_last_step()->get_timecreated(), get_string('strftimedatetime', 'core_langconfig')),
+                    ],
+                    'autosavedstep' => $qa->has_autosaved_step() ? 'true' : 'false',
+                ];
+                $attemptedquestions[] = $data;
+            }
+            $debugdata = [
+                'debuginfo' => $debuginfo,
+                'questionusageid' => $questionusageid,
+                'userid' => $userid,
+                'catquizattemptid' => $catquizattemptid,
+                'currenttime' => $currenttime,
+                'currenttime_readable' => userdate($currenttime, get_string('strftimedatetime', 'core_langconfig')),
+                'attemptedquestions' => $attemptedquestions,
+            ];
+            throw new moodle_exception(
+                'submissionoutofsequence',
+                'question',
+                '',
+                null,
+                print_r($debugdata, true)
+            );
+        }
         $this->quba->finish_all_questions($currenttime);
         question_engine::save_questions_usage_by_activity($this->quba);
 
