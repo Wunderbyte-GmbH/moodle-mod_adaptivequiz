@@ -226,17 +226,19 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
 
     public function add_completion_rules(): array {
         $form = $this->_form;
-        $form->addElement('checkbox', 'completionattemptcompleted', ' ',
+        $suffix = $this->get_suffix();
+        $form->addElement('checkbox', 'completionattemptcompleted' . $suffix, ' ',
             get_string('completionattemptcompletedform', 'adaptivequiz'));
 
-        return ['completionattemptcompleted'];
+        return ['completionattemptcompleted' . $suffix];
     }
 
     public function completion_rule_enabled($data): bool {
-        if (!isset($data['completionattemptcompleted'])) {
-            return false;
-        }
+        $suffix = $this->get_suffix();
 
+        if (!isset($data['completionattemptcompleted' . $suffix])) {
+             return false;
+        }
         return $data['completionattemptcompleted'] != 0;
     }
 
