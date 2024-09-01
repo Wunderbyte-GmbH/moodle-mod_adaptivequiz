@@ -52,39 +52,18 @@ define('ADAPTIVEQUIZ_ATTEMPTLAST',  '4');
  */
 function adaptivequiz_supports($feature) {
     switch($feature) {
-        case FEATURE_GROUPS: {
-            return true;
-        }
-        case FEATURE_GROUPINGS: {
-            return true;
-        }
-        case FEATURE_GROUPMEMBERSONLY: {
-            return true;
-        }
-        case FEATURE_MOD_INTRO: {
-            return true;
-        }
-        case FEATURE_BACKUP_MOODLE2: {
-            return true;
-        }
-        case FEATURE_SHOW_DESCRIPTION: {
-            return true;
-        }
-        case FEATURE_GRADE_HAS_GRADE: {
-            return true;
-        }
-        case FEATURE_USES_QUESTIONS: {
-            return true;
-        }
-        case FEATURE_MOD_PURPOSE: {
-            return MOD_PURPOSE_ASSESSMENT;
-        }
-        case FEATURE_COMPLETION_HAS_RULES: {
-            return true;
-        }
-        default: {
-            return null;
-        }
+        case FEATURE_GROUPS:                  return true;
+        case FEATURE_GROUPINGS:               return true;
+        case FEATURE_GROUPMEMBERSONLY:        return true;
+        case FEATURE_MOD_INTRO:               return true;
+        case FEATURE_BACKUP_MOODLE2:          return true;
+        case FEATURE_SHOW_DESCRIPTION:        return true;
+        case FEATURE_GRADE_HAS_GRADE:         return true;
+        case FEATURE_GRADE_OUTCOMES:          return true;
+        case FEATURE_USES_QUESTIONS:          return true;
+        case FEATURE_MOD_PURPOSE:             return MOD_PURPOSE_ASSESSMENT;
+        case FEATURE_COMPLETION_HAS_RULES:    return true;
+        default:                              return null;
     }
 }
 
@@ -104,7 +83,13 @@ function adaptivequiz_add_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_
     $time = time();
     $adaptivequiz->timecreated = $time;
     $adaptivequiz->timemodified = $time;
-    $adaptivequiz->attemptfeedbackformat = 0;
+    $cmid = $adaptivequiz->coursemodule;
+
+    $attemptfeedback = $adaptivequiz->attemptfeedback;
+    if ($mform) {
+        $adaptivequiz->attemptfeedback       = $attemptfeedback['text'];
+        $adaptivequiz->attemptfeedbackformat = $attemptfeedback['format'];
+    }
 
     // When a custom CAT model is submitted, some settings should strictly acquire default values as they make sense only when
     // using the default CAT algorithm.
@@ -113,6 +98,15 @@ function adaptivequiz_add_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_
     }
 
     $instance = $DB->insert_record('adaptivequiz', $adaptivequiz);
+
+    if ($mform and !empty($attemptfeedback['itemid'])) {
+        $draftitemid = $attemptfeedback['itemid'];
+        $context = context_module::instance($cmid);
+        $adaptivequiz->attemptfeedback = file_save_draft_area_files($draftitemid, $context->id, 'adaptivequiz', 'attemptfeedback', 0,
+        ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0],
+        $adaptivequiz->attemptfeedback);
+        $DB->update_record('adaptivequiz', $adaptivequiz);
+    }
 
     if (empty($instance) && is_int($instance)) {
         return $instance;
@@ -212,8 +206,14 @@ function adaptivequiz_update_questcat_association(int $instance, stdClass $adapt
 function adaptivequiz_update_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_form $mform = null) {
     global $DB;
 
+    $cmid = $adaptivequiz->coursemodule;
+
     $adaptivequiz->timemodified = time();
     $adaptivequiz->id = $adaptivequiz->instance;
+
+    $attemptfeedback = $adaptivequiz->attemptfeedback;
+    $adaptivequiz->attemptfeedback       = $attemptfeedback['text'];
+    $adaptivequiz->attemptfeedbackformat = $attemptfeedback['format'];
 
     // Get the current value, so we can see what changed.
     $oldquiz = $DB->get_record('adaptivequiz', array('id' => $adaptivequiz->instance));
@@ -225,6 +225,15 @@ function adaptivequiz_update_instance(stdClass $adaptivequiz, mod_adaptivequiz_m
     }
 
     $instanceid = $DB->update_record('adaptivequiz', $adaptivequiz);
+
+    $draftitemid = $attemptfeedback['itemid'];
+    $context = context_module::instance($cmid);
+    if ($draftitemid) {
+        $adaptivequiz->attemptfeedback = file_save_draft_area_files($draftitemid, $context->id, 'mod_adaptivequiz', 'attemptfeedback', 0,
+        ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0],
+        $adaptivequiz->attemptfeedback);
+        $DB->update_record('adaptivequiz', $adaptivequiz);
+    }
 
     // Save question tag association data.
     adaptivequiz_update_questcat_association($adaptivequiz->id, $adaptivequiz);
@@ -415,6 +424,12 @@ function adaptivequiz_get_recent_mod_activity(&$activities, &$index, $timestart,
 
     $cm = $modinfo->cms[$cmid];
     $adaptivequiz = $DB->get_record('adaptivequiz', array('id' => $cm->instance));
+
+    $attemptfeedback = $adaptivequiz->attemptfeedback;
+    $adaptivequiz->attemptfeedback = [
+        'text' => $attemptfeedback,
+        'format' => $adaptivequiz->attemptfeedbackformat];
+
 
     if ($userid) {
         $userselect = "AND u.id = :userid";
@@ -891,7 +906,7 @@ function adaptivequiz_get_coursemodule_info(stdClass $coursemodule) {
 
     $result = new cached_cm_info();
     $result->name = $adaptivequiz->name;
-    
+
     if ($coursemodule->showdescription) {
         // Convert intro to html. Do not filter cached version, filters run at display time.
         $result->content = format_module_intro('adaptivequiz', $adaptivequiz, $coursemodule->id, false);

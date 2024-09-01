@@ -85,10 +85,10 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
         $mform->addHelpButton('browsersecurity', 'browsersecurity', 'adaptivequiz');
         $mform->setDefault('browsersecurity', 0);
 
-        $mform->addElement('textarea', 'attemptfeedback', get_string('attemptfeedback', 'adaptivequiz'),
-            'wrap="virtual" rows="10" cols="50"');
+        $mform->addElement('editor', 'attemptfeedback', get_string('attemptfeedback', 'adaptivequiz'), null,
+            ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0]);
         $mform->addHelpButton('attemptfeedback', 'attemptfeedback', 'adaptivequiz');
-        $mform->setType('attemptfeedback', PARAM_NOTAGS);
+        $mform->setType('attemptfeedback', PARAM_CLEANHTML);
 
         $mform->addElement('select', 'showabilitymeasure', get_string('showabilitymeasure', 'adaptivequiz'),
             [get_string('no'), get_string('yes')]);
@@ -194,7 +194,19 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
      * @param array $defaultvalues
      */
     public function data_preprocessing(&$defaultvalues) {
-        parent::data_preprocessing($defaultvalues);
+        // parent::data_preprocessing($defaultvalues);
+
+        if ($this->current->instance) {
+            $draftitemid = file_get_submitted_draft_itemid('adaptivequiz');
+            $attemptfeedback = $defaultvalues['attemptfeedback'];
+            $defaultvalues['attemptfeedback'] = [];
+            $defaultvalues['attemptfeedback']['format'] = $defaultvalues['attemptfeedbackformat'];
+            $defaultvalues['attemptfeedback']['text']   = file_prepare_draft_area($draftitemid, $this->context->id, 'mod_adaptivequiz',
+                    'attemptfeedback', 0,
+                    ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0],
+                    $attemptfeedback);
+            $defaultvalues['attemptfeedback']['itemid'] = $draftitemid;
+        }
 
         // Run preprocessing hook from the custom CAT model being used (if any).
         if (empty($defaultvalues['catmodel'])) {
