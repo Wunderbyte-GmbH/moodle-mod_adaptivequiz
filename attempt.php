@@ -82,7 +82,7 @@ try {
     throw new moodle_exception(
         'activityavailabilitystudentnotification',
         'adaptivequiz',
-        new moodle_url('/mod/adaptivequiz/view.php', ['id' => $cm->id])
+        new moodle_url('/mod/adaptivequiz/view.php', ['cmid' => $cm->id])
     );
 }
 
@@ -132,7 +132,7 @@ $adaptivequizsession = adaptive_quiz_session::init($quba, $adaptivequiz);
 
 // Process answer to previous question if submitted.
 // TODO: consider a better flag of whether a question answer was submitted.
-if ($attemptedqubaslot)) {
+if ($attemptedqubaslot) {
     if (confirm_sesskey()) {
         $adaptivequizsession->process_item_result($attempt, $attemptedqubaslot);
 
@@ -141,11 +141,11 @@ if ($attemptedqubaslot)) {
     else
     {
         throw new moodle_exception(
-                'submissionoutofsequence',
-                'question',
-                '',
+                'sesskeyvalidationfailed',
+                'mod_adaptivequiz',
+                new moodle_url('/mod/adaptivequiz/view.php', ['cmid' => $cm->id],
                 null,
-                "Session Key ist abgelaufen.\n ".print_r($attempt,true)
+                "Information about attempt: ".print_r($attempt,true)
         );
     }
 }

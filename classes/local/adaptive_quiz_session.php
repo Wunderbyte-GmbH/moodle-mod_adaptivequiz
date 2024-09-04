@@ -124,7 +124,7 @@ final class adaptive_quiz_session {
             throw new moodle_exception(
                 'submissionoutofsequence',
                 'question',
-                '',
+                new moodle_url('/mod/adaptivequiz/attempt.php', ['cmid' => $cm->id]),
                 null,
                 print_r($debugdata, true)
             );

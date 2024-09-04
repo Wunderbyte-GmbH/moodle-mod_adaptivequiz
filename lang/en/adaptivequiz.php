@@ -31,6 +31,7 @@ $string['activityavailabilitymissingquestionbehaviour'] = 'the required question
 $string['activityavailabilitymanagernotification'] = 'WARNING: the site config is not compatible with the activity requirements: {$a}. The activity will not be available to students unless the site config is updated.';
 $string['activityavailabilityquestionbehaviourdisabled'] = 'the required question behaviour \'{$a}\' is disabled in the site questions config';
 $string['activityavailabilitystudentnotification'] = 'The site isn\'t configured properly to run the quiz. Please, advice the course manager to visit the activity view page to check for warnings displayed.';
+$string['sesskeyvalidationfailed'] = 'The validation of your session key falied.';
 $string['attemptfeedbackdefaulttext'] = 'You\'ve finished the attempt, thank you for taking the quiz!';
 $string['attemptquestion_ability'] = 'Ability Measure';
 $string['attemptquestionsprogress'] = 'Questions progress: {$a}';

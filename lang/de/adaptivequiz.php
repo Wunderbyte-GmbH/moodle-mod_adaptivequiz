@@ -27,6 +27,5 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['btnbacktotest'] = 'Zurück zum Test';
 $string['btncontinuetocourse'] = 'Weiter zum Kurs';
-
-
+$string['sesskeyvalidationfailed'] = 'Ihr Session Key konnte nicht erfolgreich überprüft werden.';
 $string['subplugintype_adaptivequizcatmodel'] = 'CAT-Model';
