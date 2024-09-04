@@ -66,7 +66,7 @@ $adaptivequiz->cm = $cm;
 
 // Setup page global for standard viewing.
 $viewurl = new moodle_url('/mod/adaptivequiz/view.php', array('id' => $cm->id));
-$PAGE->set_url('/mod/adaptivequiz/view.php', array('cmid' => $cm->id));
+$PAGE->set_url('/mod/adaptivequiz/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($adaptivequiz->name));
 $PAGE->set_context($context);
 $PAGE->activityheader->disable();
@@ -82,7 +82,7 @@ try {
     throw new moodle_exception(
         'activityavailabilitystudentnotification',
         'adaptivequiz',
-        new moodle_url('/mod/adaptivequiz/view.php', ['cmid' => $cm->id])
+        new moodle_url('/mod/adaptivequiz/view.php', ['id' => $cm->id])
     );
 }
 
