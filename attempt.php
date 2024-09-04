@@ -143,7 +143,7 @@ if ($attemptedqubaslot) {
         throw new moodle_exception(
                 'sesskeyvalidationfailed',
                 'mod_adaptivequiz',
-                new moodle_url('/mod/adaptivequiz/view.php', ['cmid' => $cm->id],
+                new moodle_url('/mod/adaptivequiz/view.php', ['cmid' => $cm->id]),
                 null,
                 "Information about attempt: ".print_r($attempt,true)
         );
