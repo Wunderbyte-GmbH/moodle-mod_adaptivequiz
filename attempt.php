@@ -132,10 +132,22 @@ $adaptivequizsession = adaptive_quiz_session::init($quba, $adaptivequiz);
 
 // Process answer to previous question if submitted.
 // TODO: consider a better flag of whether a question answer was submitted.
-if ($attemptedqubaslot && confirm_sesskey()) {
-    $adaptivequizsession->process_item_result($attempt, $attemptedqubaslot);
+if ($attemptedqubaslot)) {
+    if (confirm_sesskey()) {
+        $adaptivequizsession->process_item_result($attempt, $attemptedqubaslot);
 
-    redirect(new moodle_url('/mod/adaptivequiz/attempt.php', ['cmid' => $cm->id]));
+        redirect(new moodle_url('/mod/adaptivequiz/attempt.php', ['cmid' => $cm->id]));
+    }
+    else
+    {
+        throw new moodle_exception(
+                'submissionoutofsequence',
+                'question',
+                '',
+                null,
+                "Session Key ist abgelaufen.\n ".print_r($attempt,true)
+        );
+    }
 }
 
 $nextquestionslot = $adaptivequizsession->administer_next_item_or_stop($attempt);
