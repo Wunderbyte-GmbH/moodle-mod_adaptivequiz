@@ -176,6 +176,16 @@ if (!empty($adaptivequiz->password) && empty($condition)) {
         echo $output->container_end();
     }
 
+    $sql = "SELECT MAX(slot) currentslot
+        FROM {question_attempts}
+        WHERE questionusageid = $qubaid";
+
+    $slot = $DB->get_record_sql($sql);
+    if ($nextquestionslot != $slot->currentslot) {
+        trigger_error("Slot ist nicht gleich: Slot in DB ".$slot->currentslot." vs. Slot aus mod_adaptive ".$nextquestionslot."! Replace nextquestionslot, questionusageid: $qubaid", E_USER_NOTICE);
+        $nextquestionslot = $slot->currentslot;
+    }
+
     echo $output->question_submit_form($id, $quba, $nextquestionslot, $attemptdata->questionsattempted + 1);
 }
 
