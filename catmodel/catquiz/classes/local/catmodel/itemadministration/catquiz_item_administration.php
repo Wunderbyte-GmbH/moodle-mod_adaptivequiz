@@ -103,24 +103,6 @@ final class catquiz_item_administration implements item_administration {
             );
         }
 
-        $slot = $this->get_slot_for_question($questionid);
-        $questionanswerevaluationresult = $this->questionanswerevaluation->perform($previousquestionslot);
-
-        return item_administration_evaluation::with_next_item(next_item::from_quba_slot($slot));
-    }
-
-    /**
-     * Starts a random question from the configured pool and returns its slot number.
-     *
-     * @param int $questionid
-     * @return int The slot number.
-     */
-    private function get_slot_for_question(int $questionid): int {
-        $question = question_bank::load_question($questionid);
-        $slot = $this->quba->add_question($question);
-        $this->quba->start_question($slot);
-        question_engine::save_questions_usage_by_activity($this->quba);
-
-        return $slot;
+        return item_administration_evaluation::with_next_item(next_item::from_question_id($questionid));
     }
 }
