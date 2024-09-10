@@ -33,6 +33,7 @@ use question_bank;
 use question_engine;
 use question_out_of_sequence_exception;
 use question_usage_by_activity;
+use moodle_url;
 use stdClass;
 
 /**
@@ -86,6 +87,8 @@ final class adaptive_quiz_session {
      */
     public function process_item_result(attempt $attempt, int $attemptedslot): void {
         $currenttime = time();
+        $id = required_param('cmid', PARAM_INT); // Course module id.
+        $url = new moodle_url('/mod/adaptivequiz/attempt.php', array('cmid' => $id));
 
         try {
             $this->quba->process_all_actions($currenttime);
@@ -124,9 +127,9 @@ final class adaptive_quiz_session {
             throw new moodle_exception(
                 'submissionoutofsequence',
                 'question',
-                '',
+                $url,
                 null,
-                print_r($debugdata, true)
+                ''
             );
         }
         $this->quba->finish_all_questions($currenttime);
