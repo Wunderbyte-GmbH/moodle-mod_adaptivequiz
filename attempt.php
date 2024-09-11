@@ -105,6 +105,7 @@ if (!empty($adaptivequiz->password)) {
     if (empty($condition) && $mform->is_cancelled()) {
         // Return user to landing page.
         redirect($viewurl);
+        exit;
     } else if (empty($condition) && $data = $mform->get_data()) {
         $SESSION->passwordcheckedadpq = array();
 
@@ -136,6 +137,7 @@ if ($attemptedqubaslot && confirm_sesskey()) {
     $adaptivequizsession->process_item_result($attempt, $attemptedqubaslot);
 
     redirect(new moodle_url('/mod/adaptivequiz/attempt.php', ['cmid' => $cm->id]));
+    exit;
 }
 
 $nextquestionslot = $adaptivequizsession->administer_next_item_or_stop($attempt);
@@ -143,6 +145,7 @@ $nextquestionslot = $adaptivequizsession->administer_next_item_or_stop($attempt)
 if ($attempt->is_completed()) {
     redirect(new moodle_url('/mod/adaptivequiz/attemptfinished.php',
         ['attempt' => $attempt->read_attempt_data()->id, 'instance' => $adaptivequiz->id]));
+    exit;
 }
 
 $PAGE->requires->js_init_call('M.mod_adaptivequiz.init_attempt_form', array($viewurl->out(), $adaptivequiz->browsersecurity),
@@ -174,6 +177,23 @@ if (!empty($adaptivequiz->password) && empty($condition)) {
         echo $output->container_start('attempt-progress-container');
         echo $output->attempt_progress($attemptdata->questionsattempted, $adaptivequiz->maximumquestions);
         echo $output->container_end();
+    }
+
+    $sql = "SELECT MAX(slot) slot
+        FROM {question_attempts}
+        WHERE questionusageid = $qubaid
+        ORDER BY timemodified DESC
+        LIMIT 1";
+
+    $slot = $DB->get_record_sql($sql);
+
+    if (empty($slot) || $slot->slot == 0) {
+        // btrigger_error("Kein Slot gefunden; Quizversuch wurde vermutlich gerade gestartet. questionusageid: $qubaid", E_USER_NOTICE);
+    } else {
+        if ($slot && $nextquestionslot !== (int)$slot->slot) {
+            trigger_error("Slot ist nicht gleich: Slot in DB ".$slot->slot." vs. Slot aus mod_adaptive ".$nextquestionslot."! Replace nextquestionslot, questionusageid: $qubaid", E_USER_NOTICE);
+            $nextquestionslot = (int) $slot->slot;
+        }
     }
 
     echo $output->question_submit_form($id, $quba, $nextquestionslot, $attemptdata->questionsattempted + 1);
