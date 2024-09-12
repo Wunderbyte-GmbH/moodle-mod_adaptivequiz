@@ -57,7 +57,6 @@ try {
     if (!empty($e->debuginfo)) {
         $debuginfo = $e->debuginfo;
     }
-
     throw new moodle_exception('invalidmodule', 'error', $url, $e->getMessage(), $debuginfo);
 }
 
@@ -122,14 +121,35 @@ $attempt = adaptive_quiz_session::initialize_attempt($adaptivequiz);
 
 // Initialize quba.
 $qubaid = $attempt->read_attempt_data()->uniqueid;
+/*
 $quba = ($qubaid == 0)
     ? question_engine::make_questions_usage_by_activity('mod_adaptivequiz', $context)
     : question_engine::load_questions_usage_by_activity($qubaid);
+*/
 if ($qubaid == 0) {
+    $quba = question_engine::make_questions_usage_by_activity('mod_adaptivequiz', $context);
     $quba->set_preferred_behaviour(attempt::ATTEMPTBEHAVIOUR);
+    $qubaid = $attempt->read_attempt_data()->uniqueid;
+} else {
+    $quba = question_engine::load_questions_usage_by_activity($qubaid);
 }
 
 $adaptivequizsession = adaptive_quiz_session::init($quba, $adaptivequiz);
+
+// Check whether given slot is last slot in attempt.
+$sql = "SELECT MAX(slot) slot
+    FROM {question_attempts}
+    WHERE questionusageid = $qubaid
+    ORDER BY timemodified DESC
+    LIMIT 1";
+$slot = $DB->get_record_sql($sql);
+
+if (!(empty($slot) || $slot->slot == 0)) {
+    if ($attemptedqubaslot && $attemptedqubaslot !== (int)$slot->slot) {
+        // trigger_error("WARNUNG: Slot ungleich: Slot in DB ".$slot->slot." vs. Slot aus Formular ".$attemptedqubaslot.". Reset \$attemptedqubaslot and re-deliver formular for questionusageid: $qubaid", E_USER_WARNING);
+        $attemptedqubaslot = 0;
+    }
+}
 
 // Process answer to previous question if submitted.
 // TODO: consider a better flag of whether a question answer was submitted.
@@ -177,23 +197,6 @@ if (!empty($adaptivequiz->password) && empty($condition)) {
         echo $output->container_start('attempt-progress-container');
         echo $output->attempt_progress($attemptdata->questionsattempted, $adaptivequiz->maximumquestions);
         echo $output->container_end();
-    }
-
-    $sql = "SELECT MAX(slot) slot
-        FROM {question_attempts}
-        WHERE questionusageid = $qubaid
-        ORDER BY timemodified DESC
-        LIMIT 1";
-
-    $slot = $DB->get_record_sql($sql);
-
-    if (empty($slot) || $slot->slot == 0) {
-        // btrigger_error("Kein Slot gefunden; Quizversuch wurde vermutlich gerade gestartet. questionusageid: $qubaid", E_USER_NOTICE);
-    } else {
-        if ($slot && $nextquestionslot !== (int)$slot->slot) {
-            trigger_error("Slot ist nicht gleich: Slot in DB ".$slot->slot." vs. Slot aus mod_adaptive ".$nextquestionslot."! Replace nextquestionslot, questionusageid: $qubaid", E_USER_NOTICE);
-            $nextquestionslot = (int) $slot->slot;
-        }
     }
 
     echo $output->question_submit_form($id, $quba, $nextquestionslot, $attemptdata->questionsattempted + 1);

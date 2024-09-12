@@ -87,20 +87,13 @@ final class adaptive_quiz_session {
      */
     public function process_item_result(attempt $attempt, int $attemptedslot): void {
         $currenttime = time();
-        $id = required_param('cmid', PARAM_INT); // Course module id.
-        $url = new moodle_url('/mod/adaptivequiz/attempt.php', array('cmid' => $id));
 
         try {
             $this->quba->process_all_actions($currenttime);
         } catch (question_out_of_sequence_exception $e) {
-            $debuginfo = $e->debuginfo;
-            $attemptdata = $attempt->read_attempt_data();
-            $questionusageid = $this->quba->get_id();
-            $catquizattemptid = $attemptdata->id;
-            $userid = $attemptdata->userid;
+
             $attemptedquestions = [];
-            $attemptiterator = $this->quba->get_attempt_iterator();
-            foreach ($attemptiterator as $slot => $qa) {
+            foreach ($this->quba->get_attempt_iterator() as $slot => $qa) {
                 $data = [
                     'slot' => $slot,
                     'sequencecheckcount' => $qa->get_sequence_check_count(),
