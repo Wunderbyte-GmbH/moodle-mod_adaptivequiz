@@ -33,6 +33,7 @@ use question_bank;
 use question_engine;
 use question_out_of_sequence_exception;
 use question_usage_by_activity;
+use moodle_url;
 use stdClass;
 
 /**
@@ -90,14 +91,9 @@ final class adaptive_quiz_session {
         try {
             $this->quba->process_all_actions($currenttime);
         } catch (question_out_of_sequence_exception $e) {
-            $debuginfo = $e->debuginfo;
-            $attemptdata = $attempt->read_attempt_data();
-            $questionusageid = $this->quba->get_id();
-            $catquizattemptid = $attemptdata->id;
-            $userid = $attemptdata->userid;
+
             $attemptedquestions = [];
-            $attemptiterator = $this->quba->get_attempt_iterator();
-            foreach ($attemptiterator as $slot => $qa) {
+            foreach ($this->quba->get_attempt_iterator() as $slot => $qa) {
                 $data = [
                     'slot' => $slot,
                     'sequencecheckcount' => $qa->get_sequence_check_count(),
@@ -124,9 +120,9 @@ final class adaptive_quiz_session {
             throw new moodle_exception(
                 'submissionoutofsequence',
                 'question',
-                '',
+                $url,
                 null,
-                print_r($debugdata, true)
+                ''
             );
         }
         $this->quba->finish_all_questions($currenttime);

@@ -189,6 +189,24 @@ class mod_adaptivequiz_renderer extends plugin_renderer_base {
         $output .= html_writer::end_tag('div');
         $output .= html_writer::end_tag('form');
 
+        $output .= <<<ENDJS
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById('responseform');
+    const submitButton = form.querySelector('input[name="submitanswer"]');
+
+    form.addEventListener('submit', function(event) {
+      // Deaktivieren des Submit-Buttons mit dem Namen "submitanswer"
+      submitButton.disabled = true;
+      // Grau färben
+      submitButton.style.backgroundColor = 'gray';
+      submitButton.style.borderColor = 'gray';
+      submitButton.style.cursor = 'not-allowed';
+    });
+  });
+</script>
+ENDJS;
+
         return $output;
     }
 

@@ -57,7 +57,6 @@ try {
     if (!empty($e->debuginfo)) {
         $debuginfo = $e->debuginfo;
     }
-
     throw new moodle_exception('invalidmodule', 'error', $url, $e->getMessage(), $debuginfo);
 }
 
@@ -105,6 +104,7 @@ if (!empty($adaptivequiz->password)) {
     if (empty($condition) && $mform->is_cancelled()) {
         // Return user to landing page.
         redirect($viewurl);
+        exit;
     } else if (empty($condition) && $data = $mform->get_data()) {
         $SESSION->passwordcheckedadpq = array();
 
@@ -121,14 +121,35 @@ $attempt = adaptive_quiz_session::initialize_attempt($adaptivequiz);
 
 // Initialize quba.
 $qubaid = $attempt->read_attempt_data()->uniqueid;
+/*
 $quba = ($qubaid == 0)
     ? question_engine::make_questions_usage_by_activity('mod_adaptivequiz', $context)
     : question_engine::load_questions_usage_by_activity($qubaid);
+*/
 if ($qubaid == 0) {
+    $quba = question_engine::make_questions_usage_by_activity('mod_adaptivequiz', $context);
     $quba->set_preferred_behaviour(attempt::ATTEMPTBEHAVIOUR);
+    $qubaid = $attempt->read_attempt_data()->uniqueid;
+} else {
+    $quba = question_engine::load_questions_usage_by_activity($qubaid);
 }
 
 $adaptivequizsession = adaptive_quiz_session::init($quba, $adaptivequiz);
+
+// Check whether given slot is last slot in attempt.
+$sql = "SELECT MAX(slot) slot
+    FROM {question_attempts}
+    WHERE questionusageid = $qubaid
+    ORDER BY timemodified DESC
+    LIMIT 1";
+$slot = $DB->get_record_sql($sql);
+
+if (!(empty($slot) || $slot->slot == 0)) {
+    if ($attemptedqubaslot && $attemptedqubaslot !== (int)$slot->slot) {
+        // trigger_error("WARNUNG: Slot ungleich: Slot in DB ".$slot->slot." vs. Slot aus Formular ".$attemptedqubaslot.". Reset \$attemptedqubaslot and re-deliver formular for questionusageid: $qubaid", E_USER_WARNING);
+        $attemptedqubaslot = 0;
+    }
+}
 
 // Process answer to previous question if submitted.
 // TODO: consider a better flag of whether a question answer was submitted.
@@ -136,6 +157,7 @@ if ($attemptedqubaslot && confirm_sesskey()) {
     $adaptivequizsession->process_item_result($attempt, $attemptedqubaslot);
 
     redirect(new moodle_url('/mod/adaptivequiz/attempt.php', ['cmid' => $cm->id]));
+    exit;
 }
 
 $nextquestionslot = $adaptivequizsession->administer_next_item_or_stop($attempt);
@@ -143,6 +165,7 @@ $nextquestionslot = $adaptivequizsession->administer_next_item_or_stop($attempt)
 if ($attempt->is_completed()) {
     redirect(new moodle_url('/mod/adaptivequiz/attemptfinished.php',
         ['attempt' => $attempt->read_attempt_data()->id, 'instance' => $adaptivequiz->id]));
+    exit;
 }
 
 $PAGE->requires->js_init_call('M.mod_adaptivequiz.init_attempt_form', array($viewurl->out(), $adaptivequiz->browsersecurity),
