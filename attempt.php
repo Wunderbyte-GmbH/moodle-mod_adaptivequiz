@@ -146,7 +146,6 @@ $slot = $DB->get_record_sql($sql);
 
 if (!(empty($slot) || $slot->slot == 0)) {
     if ($attemptedqubaslot && $attemptedqubaslot !== (int)$slot->slot) {
-        // trigger_error("WARNUNG: Slot ungleich: Slot in DB ".$slot->slot." vs. Slot aus Formular ".$attemptedqubaslot.". Reset \$attemptedqubaslot and re-deliver formular for questionusageid: $qubaid", E_USER_WARNING);
         $attemptedqubaslot = 0;
     }
 }
