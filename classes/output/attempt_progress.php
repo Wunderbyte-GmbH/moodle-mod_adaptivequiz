@@ -89,7 +89,7 @@ class attempt_progress implements renderable, templatable {
      */
     public function export_for_template(renderer_base $output): array {
         $fortemplate = [
-            'questionsanswerednumber' => $this->questionsanswered,
+            'questionsanswerednumber' => $this->questionsanswered + 1,
             'maximumquestionsnumber' => $this->maximumquestions,
         ];
 
