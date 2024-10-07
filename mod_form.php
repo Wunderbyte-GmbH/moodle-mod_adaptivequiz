@@ -225,21 +225,32 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
     }
 
     public function add_completion_rules(): array {
+        global $CFG;
         $form = $this->_form;
-        $suffix = $this->get_suffix();
-        $form->addElement('checkbox', 'completionattemptcompleted' . $suffix, ' ',
+        $completionstring = 'completionattemptcompleted';
+        $version43min = version_compare($CFG->version, '2023102700', '>=');
+        if ($version43min) {
+            $suffix = $this->get_suffix();
+            $completionstring .= $suffix;
+        }
+        $form->addElement('checkbox', $completionstring,
             get_string('completionattemptcompletedform', 'adaptivequiz'));
 
-        return ['completionattemptcompleted' . $suffix];
+        return [$completionstring];
     }
 
     public function completion_rule_enabled($data): bool {
-        $suffix = $this->get_suffix();
-
-        if (!isset($data['completionattemptcompleted' . $suffix])) {
+        global $CFG;
+        $completionstring = 'completionattemptcompleted';
+        $version43min = version_compare($CFG->version, '2023102700', '>=');
+        if ($version43min) {
+            $suffix = $this->get_suffix();
+            $completionstring .= $suffix;
+        }
+        if (!isset($data[$completionstring])) {
              return false;
         }
-        return $data['completionattemptcompleted'] != 0;
+        return $data[$completionstring] != 0;
     }
 
     /**
