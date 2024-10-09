@@ -137,9 +137,14 @@ if ($qubaid == 0) {
 $adaptivequizsession = adaptive_quiz_session::init($quba, $adaptivequiz);
 
 // Check whether given slot is last slot in attempt.
-$sql = "SELECT MAX(slot) slot
+$sql = "SELECT slot
     FROM {question_attempts}
     WHERE questionusageid = $qubaid
+    AND slot = (
+        SELECT MAX(slot)
+        FROM {question_attempts}
+        WHERE questionusageid = $qubaid
+    )
     ORDER BY timemodified DESC
     LIMIT 1";
 $slot = $DB->get_record_sql($sql);
