@@ -18,6 +18,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/adaptivequiz/locallib.php');
+require_once($CFG->libdir.'/filelib.php');
 
 use mod_adaptivequiz\local\repository\questions_repository;
 
@@ -85,10 +86,12 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
         $mform->addHelpButton('browsersecurity', 'browsersecurity', 'adaptivequiz');
         $mform->setDefault('browsersecurity', 0);
 
+        $context = $this->context;
+
         $mform->addElement('editor', 'attemptfeedback', get_string('attemptfeedback', 'adaptivequiz'), null,
             ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0]);
         $mform->addHelpButton('attemptfeedback', 'attemptfeedback', 'adaptivequiz');
-        $mform->setType('attemptfeedback', PARAM_CLEANHTML);
+        // $mform->setType('attemptfeedback', PARAM_CLEANHTML);
 
         $mform->addElement('select', 'showabilitymeasure', get_string('showabilitymeasure', 'adaptivequiz'),
             [get_string('no'), get_string('yes')]);
@@ -194,7 +197,7 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
      * @param array $defaultvalues
      */
     public function data_preprocessing(&$defaultvalues) {
-        // parent::data_preprocessing($defaultvalues);
+        parent::data_preprocessing($defaultvalues);
 
         if ($this->current->instance) {
             $draftitemid = file_get_submitted_draft_itemid('adaptivequiz');
@@ -203,7 +206,7 @@ class mod_adaptivequiz_mod_form extends moodleform_mod {
             $defaultvalues['attemptfeedback']['format'] = $defaultvalues['attemptfeedbackformat'];
             $defaultvalues['attemptfeedback']['text']   = file_prepare_draft_area($draftitemid, $this->context->id, 'mod_adaptivequiz',
                     'attemptfeedback', 0,
-                    ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0],
+                    ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$this->context, 'noclean'=>1, 'trusttext'=>0],
                     $attemptfeedback);
             $defaultvalues['attemptfeedback']['itemid'] = $draftitemid;
         }
