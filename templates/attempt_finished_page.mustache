@@ -31,11 +31,16 @@
         "browsersecurityenabled": false
     }
 }}
-<div class="text-center">
+<div>
+    {{#attemptfeedback}}
+    <div>
+        {{{attemptfeedback}}}
+    </div>
+    {{/attemptfeedback}}
     <div>
         {{{feedback}}}
     </div>
-    <div class="mt-5">
+    <div class="mt-5" class="text-center">
         {{#browsersecurityenabled}}
             <button id="secureclosebutton" class="btn btn-primary">{{#str}} continue, core {{/str}}</button>
         {{/browsersecurityenabled}}
