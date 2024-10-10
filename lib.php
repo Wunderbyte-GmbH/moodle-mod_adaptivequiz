@@ -78,14 +78,14 @@ function adaptivequiz_supports($feature) {
  * @return int The id of the newly inserted adaptive quiz record.
  */
 function adaptivequiz_add_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_form $mform = null) {
-    global $DB;
+    global $CFG, $DB;
 
     $time = time();
     $adaptivequiz->timecreated = $time;
     $adaptivequiz->timemodified = $time;
     $cmid = $adaptivequiz->coursemodule;
 
-    $attemptfeedback = $adaptivequiz->attemptfeedback;
+    $attemptfeedback = $adaptivequiz->attemptfeedbackeditor;
     if ($mform) {
         $adaptivequiz->attemptfeedback       = $attemptfeedback['text'];
         $adaptivequiz->attemptfeedbackformat = $attemptfeedback['format'];
@@ -208,14 +208,14 @@ function adaptivequiz_update_questcat_association(int $instance, stdClass $adapt
  * @return bool Success/failure.
  */
 function adaptivequiz_update_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_form $mform = null) {
-    global $DB;
+    global $CFG, $DB;
 
     $cmid = $adaptivequiz->coursemodule;
 
     $adaptivequiz->timemodified = time();
     $adaptivequiz->id = $adaptivequiz->instance;
 
-    $attemptfeedback = $adaptivequiz->attemptfeedback;
+    $attemptfeedback = $adaptivequiz->attemptfeedbackeditor;
     $adaptivequiz->attemptfeedback       = $attemptfeedback['text'];
     $adaptivequiz->attemptfeedbackformat = $attemptfeedback['format'];
 
