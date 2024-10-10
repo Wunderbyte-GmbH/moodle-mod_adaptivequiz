@@ -17,6 +17,7 @@
 namespace adaptivequizcatmodel_catquiz\local\catmodel\itemadministration;
 
 use local_catquiz\catquiz_handler;
+use mod_adaptivequiz\event\alise_debug_event;
 use mod_adaptivequiz\local\attempt\attempt;
 use mod_adaptivequiz\local\itemadministration\item_administration;
 use mod_adaptivequiz\local\itemadministration\item_administration_evaluation;
@@ -88,12 +89,25 @@ final class catquiz_item_administration implements item_administration {
         );
         // This means no answer has been given yet, it's a fresh attempt.
         if (is_null($previousquestionslot)) {
+            alise_debug_event::log(
+                $this->attempt->read_attempt_data()->id,
+                sprintf('Previous question slot is null')
+            );
             if ($questionid === 0) {
+                alise_debug_event::log(
+                    $this->attempt->read_attempt_data()->id,
+                    sprintf('Stopping because questionid is 0')
+                );
                 return item_administration_evaluation::with_stoppage_reason(
                     $errormessage
                 );
             }
 
+
+            alise_debug_event::log(
+                $this->attempt->read_attempt_data()->id,
+                sprintf('Fetched question with ID %d', $questionid)
+            );
             return item_administration_evaluation::with_next_item(next_item::from_question_id($questionid));
         }
 

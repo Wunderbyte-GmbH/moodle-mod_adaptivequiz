@@ -19,6 +19,7 @@ namespace mod_adaptivequiz\local;
 use coding_exception;
 use core_component;
 use core_tag_tag;
+use mod_adaptivequiz\event\alise_debug_event;
 use mod_adaptivequiz\local\attempt\attempt;
 use mod_adaptivequiz\local\attempt\cat_calculation_steps_result;
 use mod_adaptivequiz\local\attempt\cat_model_params;
@@ -156,9 +157,17 @@ final class adaptive_quiz_session {
         if (is_null($slot)) {
             $question = question_bank::load_question($itemadministrationevaluationresult->next_item()->question_id());
             $slot = $this->quba->add_question($question);
+            alise_debug_event::log(
+                $attempt->read_attempt_data()->id,
+                sprintf('Got slot %d for question %d', $slot, $question->id)
+            );
         }
 
         if (!$this->quba->get_question_state($slot)->is_active()) {
+            alise_debug_event::log(
+                $attempt->read_attempt_data()->id,
+                sprintf('Question is not active and will be started')
+            );
             $this->quba->start_question($slot);
             question_engine::save_questions_usage_by_activity($this->quba);
 
@@ -166,6 +175,12 @@ final class adaptive_quiz_session {
             if (count($this->quba->get_slots()) == 1) {
                 $attempt->set_quba_id($this->quba->get_id());
             }
+        } else {
+            alise_debug_event::log(
+                $attempt->read_attempt_data()->id,
+                sprintf('Question was already active')
+            );
+
         }
 
         return $slot;
