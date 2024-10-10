@@ -97,11 +97,15 @@ function adaptivequiz_add_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_
         $adaptivequiz->showabilitymeasure = 0;
     }
 
-    $instance = $DB->insert_record('adaptivequiz', $adaptivequiz);
+    $adaptivequiz->id = $DB->insert_record('adaptivequiz', $adaptivequiz);
+    $instance = $adaptivequiz->id;
+
+    // we need to use context now, so we need to make sure all needed info is already in db
+    $DB->set_field('course_modules', 'instance', $instance, array('id'=>$cmid));
+    $context = context_module::instance($cmid);
 
     if ($mform and !empty($attemptfeedback['itemid'])) {
         $draftitemid = $attemptfeedback['itemid'];
-        $context = context_module::instance($cmid);
         $adaptivequiz->attemptfeedback = file_save_draft_area_files($draftitemid, $context->id, 'adaptivequiz', 'attemptfeedback', 0,
         ['subdirs'=>1, 'maxbytes'=>$CFG->maxbytes, 'maxfiles'=>-1, 'changeformat'=>1, 'context'=>$context, 'noclean'=>1, 'trusttext'=>0],
         $adaptivequiz->attemptfeedback);
