@@ -34,6 +34,9 @@ class restore_adaptivequiz_activity_structure_step extends restore_questions_act
         $userinfo = $this->get_setting_value('userinfo');
 
         $adaptivequiz = new restore_path_element('adaptivequiz', '/activity/adaptivequiz');
+
+        $this->add_subplugin_structure('adaptivequizcatmodel', $adaptivequiz);
+
         $paths[] = $adaptivequiz;
 
         $paths[] = new restore_path_element('adaptivequiz_question',

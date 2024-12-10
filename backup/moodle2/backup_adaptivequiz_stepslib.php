@@ -40,6 +40,8 @@ class backup_adaptivequiz_activity_structure_step extends backup_questions_activ
             'catmodel'];
         $adaptivequiz = new backup_nested_element('adaptivequiz', ['id'], $nodes);
 
+        $this->add_subplugin_structure('adaptivequizcatmodel', $adaptivequiz, true);
+
         // Attempts.
         $adaptiveattempts = new backup_nested_element('adaptiveattempts');
         $nodes = ['userid', 'uniqueid', 'attemptstate', 'attemptstopcriteria', 'questionsattempted', 'timecreated',
