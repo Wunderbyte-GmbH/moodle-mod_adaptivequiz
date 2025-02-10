@@ -84,6 +84,7 @@ $string['reportuserattemptstitleshort'] = '{$a}\'s attempts';
 $string['reportquestionanalysispageheading'] = '{$a} - questions report';
 $string['settingsdefaultsettingsheading'] = 'Default settings of activity instances';
 $string['settingsdefaultsettingsheadinginfo'] = 'If your adaptive quizzes are supposed to be configured identically throughout the courses you may want to set some default settings for them here.';
+$string['subplugintype_adaptivequizcatmodel'] = 'CAT model plugin';
 $string['subplugintype_adaptivequizcatmodel_plural'] = 'CAT model plugins';
 $string['modulenameplural'] = 'Adaptive Quiz';
 $string['modulename'] = 'Adaptive Quiz';
