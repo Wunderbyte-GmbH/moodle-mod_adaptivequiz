@@ -95,10 +95,10 @@ function adaptivequiz_supports($feature) {
  * and return the id number of the new instance.
  *
  * @param stdClass $adaptivequiz An object from the form in mod_form.php.
- * @param mod_adaptivequiz_mod_form|null $mform A formslib object.
+ * @param ?mod_adaptivequiz_mod_form $mform A formslib object.
  * @return int The id of the newly inserted adaptive quiz record.
  */
-function adaptivequiz_add_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_form $mform = null) {
+function adaptivequiz_add_instance(stdClass $adaptivequiz, ?mod_adaptivequiz_mod_form $mform = null) {
     global $DB;
 
     $time = time();
@@ -206,10 +206,10 @@ function adaptivequiz_update_questcat_association(int $instance, stdClass $adapt
  * instance with new data.
  *
  * @param stdClass $adaptivequiz An object from the form in mod_form.php.
- * @param mod_adaptivequiz_mod_form|null $mform A formslib object.
+ * @param ?mod_adaptivequiz_mod_form $mform A formslib object.
  * @return bool Success/failure.
  */
-function adaptivequiz_update_instance(stdClass $adaptivequiz, mod_adaptivequiz_mod_form $mform = null) {
+function adaptivequiz_update_instance(stdClass $adaptivequiz, ?mod_adaptivequiz_mod_form $mform = null) {
     global $DB;
 
     $adaptivequiz->timemodified = time();
