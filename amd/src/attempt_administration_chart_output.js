@@ -43,7 +43,7 @@ define([
      * @param {Object} tooltipItem
      * @return {Boolean}
      */
-    const tooltipItemsFilter = function (tooltipItem) {
+    const tooltipItemsFilter = function(tooltipItem) {
         return !(tooltipItem.datasetIndex === DatasetConfig.indices.STANDARD_ERROR_MAX
             || tooltipItem.datasetIndex === DatasetConfig.indices.STANDARD_ERROR_MIN);
     };
@@ -54,7 +54,7 @@ define([
      * @param {Object} tooltipItem
      * @return {String}
      */
-    const afterTooltipItemLabel = function (tooltipItem) {
+    const afterTooltipItemLabel = function(tooltipItem) {
         // Show extra text only after the ability measure and administered difficulty items.
         if (!(tooltipItem.datasetIndex === DatasetConfig.indices.ABILITY_MEASURE
             || tooltipItem.datasetIndex === DatasetConfig.indices.ADMINISTERED_DIFFICULTY)) {
@@ -85,7 +85,7 @@ define([
      *
      * @return {Object}
      */
-    const legendConfig = function () {
+    const legendConfig = function() {
         return {
             labels: {
                 generateLabels(chart) {
@@ -112,7 +112,7 @@ define([
                     return labels;
                 }
             },
-            onClick: function () {
+            onClick: function() {
                 return false;
             }
         };
@@ -136,7 +136,7 @@ define([
      * @override
      * @return {Object}
      */
-    AttemptAdministrationChartOutput.prototype._makeConfig = function () {
+    AttemptAdministrationChartOutput.prototype._makeConfig = function() {
         let config = Output.prototype._makeConfig.apply(this, arguments);
 
         // Define draw order.
@@ -161,7 +161,7 @@ define([
         // Tooltip.
         config.options.plugins.tooltip.filter = tooltipItemsFilter;
         config.options.plugins.tooltip.callbacks.afterLabel = afterTooltipItemLabel.bind(this);
-        config.options.plugins.tooltip.itemSort = function (tooltip1, tooltip2) {
+        config.options.plugins.tooltip.itemSort = function(tooltip1, tooltip2) {
             return tooltip1.datasetIndex - tooltip2.datasetIndex;
         };
 

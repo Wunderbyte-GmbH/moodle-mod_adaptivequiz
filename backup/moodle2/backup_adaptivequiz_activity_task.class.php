@@ -24,8 +24,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/mod/adaptivequiz/backup/moodle2/backup_adaptivequiz_stepslib.php');
+require_once($CFG->dirroot . '/mod/adaptivequiz/backup/moodle2/backup_adaptivequiz_stepslib.php');
 
+/**
+ * Backup adaptivequiz activity task.
+ */
 class backup_adaptivequiz_activity_task extends backup_activity_task {
     /**
      * No specific settings for this activity
@@ -66,15 +69,15 @@ class backup_adaptivequiz_activity_task extends backup_activity_task {
         $base = preg_quote($CFG->wwwroot, '/');
 
         // Link to the list of adatpivequizzes.
-        $search = "/(".$base."\/mod\/adaptivequiz\/index.php\?id\=)([0-9]+)/";
+        $search = "/(" . $base . "\/mod\/adaptivequiz\/index.php\?id\=)([0-9]+)/";
         $content = preg_replace($search, '$@ADAPTIVEQUIZINDEX*$2@$', $content);
 
         // Link to adaptivequiz view by moduleid.
-        $search = "/(".$base."\/mod\/adaptivequiz\/view.php\?id\=)([0-9]+)/";
+        $search = "/(" . $base . "\/mod\/adaptivequiz\/view.php\?id\=)([0-9]+)/";
         $content = preg_replace($search, '$@ADAPTIVEQUIZVIEWBYID*$2@$', $content);
 
         // Link to adaptivequiz view by adaptivequizid.
-        $search = "/(".$base."\/mod\/adaptivequiz\/view.php\?q\=)([0-9]+)/";
+        $search = "/(" . $base . "\/mod\/adaptivequiz\/view.php\?q\=)([0-9]+)/";
         $content = preg_replace($search, '$@ADAPTIVEQUIZVIEWBYQ*$2@$', $content);
 
         return $content;

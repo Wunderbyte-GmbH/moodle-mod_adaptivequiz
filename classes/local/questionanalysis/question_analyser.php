@@ -33,8 +33,10 @@ use mod_adaptivequiz\local\questionanalysis\statistics\question_statistic_result
 use question_definition;
 use stdClass;
 
+/**
+ * Question analyser.
+ */
 class question_analyser {
-
     /** @var context the context this usage belongs to. */
     protected $context;
 
@@ -51,13 +53,13 @@ class question_analyser {
     protected $highestlevel = null;
 
     /** @var array $results An array of the re objects */
-    protected $results = array();
+    protected $results = [];
 
     /** @var array $statistics An array of the adaptivequiz_question_statistic added to this report */
-    protected $statistics = array();
+    protected $statistics = [];
 
     /** @var array $statisticresults An array of the adaptivequiz_question_statistic_result added to this report */
-    protected $statisticresults = array();
+    protected $statisticresults = [];
 
     /**
      * Constructor - Create a new analyser.
@@ -65,9 +67,11 @@ class question_analyser {
      * @param object $context
      * @param question_definition $definition
      * @param float $level The level (0-1) of the question.
+     * @param mixed $lowestlevel Lowestlevel.
+     * @param mixed $highestlevel Highestlevel.
      * @return void
      */
-    public function __construct ($context, question_definition $definition, $level, $lowestlevel, $highestlevel) {
+    public function __construct($context, question_definition $definition, $level, $lowestlevel, $highestlevel) {
         $this->context = $context;
         $this->definition = $definition;
         $this->level = $level;
@@ -78,12 +82,14 @@ class question_analyser {
     /**
      * Add an usage result for this question.
      *
+     * @param mixed $attemptid Attemptid.
+     * @param mixed $user User.
      * @param attempt_score $score The user's score on this attempt.
      * @param boolean $correct True if the user answered correctly.
-     * @param string $answer
+     * @param string $answer Answer.
      * @return void
      */
-    public function add_result ($attemptid, $user, attempt_score $score, $correct, $answer) {
+    public function add_result($attemptid, $user, attempt_score $score, $correct, $answer) {
         $result = new stdClass();
         $result->attemptid = $attemptid;
         $result->user = $user;
@@ -94,6 +100,8 @@ class question_analyser {
     }
 
     /**
+     * Returns owning context.
+     *
      * @return context the context this usage belongs to.
      */
     public function get_owning_context() {
@@ -105,7 +113,7 @@ class question_analyser {
      *
      * @return question_definition
      */
-    public function get_question_definition () {
+    public function get_question_definition() {
         return $this->definition;
     }
 
@@ -114,7 +122,7 @@ class question_analyser {
      *
      * @return int
      */
-    public function get_question_level () {
+    public function get_question_level() {
         return $this->level;
     }
 
@@ -123,7 +131,7 @@ class question_analyser {
      *
      * @return int
      */
-    public function get_question_level_in_logits () {
+    public function get_question_level_in_logits() {
         return catalgo::convert_linear_to_logit($this->level, $this->lowestlevel, $this->highestlevel);
     }
 
@@ -132,7 +140,7 @@ class question_analyser {
      *
      * @return array An array of stdClass objects.
      */
-    public function get_results () {
+    public function get_results() {
         return $this->results;
     }
 
@@ -143,7 +151,7 @@ class question_analyser {
      * @param question_statistic $statistic
      * @return void
      */
-    public function add_statistic ($key, question_statistic $statistic) {
+    public function add_statistic($key, question_statistic $statistic) {
         if (!empty($this->statistics[$key])) {
             throw new InvalidArgumentException("Statistic key '$key' is already in use.");
         }
@@ -157,7 +165,7 @@ class question_analyser {
      * @param string $key A key to identify this statistic.
      * @return question_statistic_result
      */
-    public function get_statistic_result ($key) {
+    public function get_statistic_result($key) {
         if (empty($this->statisticresults[$key])) {
             throw new InvalidArgumentException("Unknown statistic key '$key'.");
         }
@@ -167,10 +175,10 @@ class question_analyser {
     /**
      * Utility function to map a logit value to this question's scale
      *
-     * @param $logit
+     * @param mixed $logit Logit.
      * @return float Scaled value
      */
-    public function map_logit_to_scale ($logit) {
+    public function map_logit_to_scale($logit) {
         return catalgo::map_logit_to_scale($logit, $this->highestlevel, $this->lowestlevel);
     }
 }

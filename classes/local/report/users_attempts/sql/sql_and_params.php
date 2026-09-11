@@ -28,7 +28,6 @@ use mod_adaptivequiz\local\attempt\attempt_state;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class sql_and_params {
-
     /**
      * @var string $fields
      */
@@ -153,12 +152,12 @@ final class sql_and_params {
         $from = '{adaptivequiz_attempt} aa
             JOIN {user} u ON u.id = aa.userid';
 
-        list($where, $params) = self::base_where_sql_and_params($adaptivequizid);
+        [$where, $params] = self::base_where_sql_and_params($adaptivequizid);
 
         $sqlcount = "SELECT COUNT(DISTINCT u.id) FROM $from WHERE $where";
         $countparams = $params;
 
-        list($attemptwhere, $attemptparams) = self::attempt_where_sql_and_params();
+        [$attemptwhere, $attemptparams] = self::attempt_where_sql_and_params();
         $where .= " AND $attemptwhere";
         $params = array_merge($params, $attemptparams);
 
@@ -204,14 +203,14 @@ final class sql_and_params {
             JOIN {adaptivequiz_attempt} aa ON (aa.userid = u.id)
         ";
 
-        list($where, $params) = self::base_where_sql_and_params($adaptivequizid);
+        [$where, $params] = self::base_where_sql_and_params($adaptivequizid);
         $where .= " AND $enrolledjoin->wheres";
         $params = array_merge($params, $enrolledjoin->params);
 
         $sqlcount = "SELECT COUNT(DISTINCT u.id) FROM $from WHERE $where";
         $countparams = $params;
 
-        list($attemptwhere, $attemptparams) = self::attempt_where_sql_and_params();
+        [$attemptwhere, $attemptparams] = self::attempt_where_sql_and_params();
         $where .= " AND $attemptwhere";
         $params = array_merge($params, $attemptparams);
 
@@ -230,7 +229,7 @@ final class sql_and_params {
 
         $from = '{adaptivequiz_attempt} aa JOIN {user} u ON u.id = aa.userid';
 
-        list($where, $params) = self::base_where_sql_and_params($adaptivequizid);
+        [$where, $params] = self::base_where_sql_and_params($adaptivequizid);
         $where .= " AND NOT EXISTS (
             SELECT DISTINCT u.id
             FROM {user} u
@@ -242,7 +241,7 @@ final class sql_and_params {
         $sqlcount = "SELECT COUNT(DISTINCT u.id) FROM $from WHERE $where";
         $countparams = $params;
 
-        list($attemptwhere, $attemptparams) = self::attempt_where_sql_and_params();
+        [$attemptwhere, $attemptparams] = self::attempt_where_sql_and_params();
         $where .= " AND $attemptwhere";
         $params = array_merge($params, $attemptparams);
 
@@ -258,7 +257,7 @@ final class sql_and_params {
         return 'aa.id AS attemptid,
             aa.measure,
             aa.standarderror AS stderror,
-            aa.timemodified AS attempttimefinished,
+            COALESCE(aa.timefinished, aa.timemodified) AS attempttimefinished,
             (
                 SELECT COUNT(*)
                 FROM {adaptivequiz_attempt} caa

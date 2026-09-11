@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_adaptivequiz\local\report\users_attempts\user_preferences;
 
 use basic_testcase;
 use mod_adaptivequiz\local\report\users_attempts\filter\filter_options;
+use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
 /**
- * @covers \mod_adaptivequiz\local\report\users_attempts\user_preferences\user_preferences
+ * A test class.
+ *
+ * @package    mod_adaptivequiz
+ * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_preferences_test extends basic_testcase {
-
+#[CoversClass(\mod_adaptivequiz\local\report\users_attempts\user_preferences\user_preferences::class)]
+final class user_preferences_test extends basic_testcase {
     public function test_it_acquires_correct_default_values_when_provided_values_are_not_in_valid_range(): void {
         $preferences = user_preferences::from_array(
             ['perpage' => 100, 'showinitialsbar' => 22, 'persistentfilter' => -1]
@@ -80,7 +80,9 @@ class user_preferences_test extends basic_testcase {
 
     public function test_it_can_be_converted_to_array(): void {
         $preferences = user_preferences::defaults();
-        $this->assertEquals(['perpage' => 15, 'showinitialsbar' => 1, 'persistentfilter' => 0, 'filter' => null],
-            $preferences->as_array());
+        $this->assertEquals(
+            ['perpage' => 15, 'showinitialsbar' => 1, 'persistentfilter' => 0, 'filter' => null],
+            $preferences->as_array()
+        );
     }
 }

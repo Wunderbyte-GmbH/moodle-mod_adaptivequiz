@@ -34,7 +34,6 @@ use templatable;
  * @package mod_adaptivequiz
  */
 final class individual_user_attempt_actions implements renderable, templatable {
-
     /**
      * @var individual_user_attempt_action[] $actions
      */

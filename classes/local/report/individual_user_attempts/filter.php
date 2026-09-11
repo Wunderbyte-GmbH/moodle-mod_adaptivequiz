@@ -15,14 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Filter for the report on the attempts of an individual user.
+ *
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_adaptivequiz\local\report\individual_user_attempts;
 
+/**
+ * Filter.
+ */
 final class filter {
-
     /**
      * @var int $adaptivequizid
      */
@@ -33,6 +37,13 @@ final class filter {
      */
     public $userid;
 
+    /**
+     * From vars.
+     *
+     * @param int $adaptivequizid Adaptivequizid.
+     * @param int $userid Userid.
+     * @return self
+     */
     public static function from_vars(int $adaptivequizid, int $userid): self {
         $return = new self();
         $return->adaptivequizid = $adaptivequizid;

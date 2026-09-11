@@ -15,17 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Page with questions usage overview.
+ * Shows the question analysis overview of an adaptive quiz.
  *
- * @package    mod_adaptivequiz
  * @copyright  2013 Middlebury College {@link http://www.middlebury.edu/}
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__).'/../../../config.php');
-require_once($CFG->dirroot.'/lib/grouplib.php');
-require_once(dirname(__FILE__).'/../locallib.php');
+require_once(dirname(__FILE__) . '/../../../config.php');
+require_once($CFG->dirroot . '/lib/grouplib.php');
+require_once(dirname(__FILE__) . '/../locallib.php');
 
 use mod_adaptivequiz\local\questionanalysis\quiz_analyser;
 use mod_adaptivequiz\local\questionanalysis\statistics\discrimination_statistic;
@@ -40,7 +39,7 @@ $page = optional_param('page', 0, PARAM_INT);
 if (!$cm = get_coursemodule_from_id('adaptivequiz', $id)) {
     throw new moodle_exception('invalidcoursemodule');
 }
-if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
+if (!$course = $DB->get_record('course', ['id' => $cm->course])) {
     throw new moodle_exception("coursemisconf");
 }
 
@@ -49,14 +48,15 @@ $context = context_module::instance($cm->id);
 
 require_capability('mod/adaptivequiz:viewreport', $context);
 
-$adaptivequiz  = $DB->get_record('adaptivequiz', array('id' => $cm->instance), '*');
+$adaptivequiz  = $DB->get_record('adaptivequiz', ['id' => $cm->instance], '*');
 
-// The page is only available for the default algorithm.
-if ($adaptivequiz->catmodel) {
+// The analysis reports on the built-in algorithm. An activity driven by a CAT model produces its
+// numbers elsewhere, so the page would show figures that do not belong to it.
+if (!empty($adaptivequiz->catmodel)) {
     throw new moodle_exception('reportpageunavailableforcustomcatmodel', 'adaptivequiz');
 }
 
-$PAGE->set_url('/mod/adaptivequiz/questionanalysis/overview.php', array('cmid' => $cm->id));
+$PAGE->set_url('/mod/adaptivequiz/questionanalysis/overview.php', ['cmid' => $cm->id]);
 
 $title = get_string('reportquestionanalysispageheading', 'adaptivequiz', format_string($adaptivequiz->name));
 $PAGE->set_title($title);
@@ -81,8 +81,10 @@ $records = array_slice($records, $page * ADAPTIVEQUIZ_REC_PER_PAGE, ADAPTIVEQUIZ
 unset($headers['id']);
 foreach ($records as &$record) {
     $id = array_shift($record);
-    $url = new moodle_url('/mod/adaptivequiz/questionanalysis/single.php',
-        array('cmid' => $cm->id, 'qid' => $id, 'sort' => $sort, 'sortdir' => $sortdir, 'page' => $page));
+    $url = new moodle_url(
+        '/mod/adaptivequiz/questionanalysis/single.php',
+        ['cmid' => $cm->id, 'qid' => $id, 'sort' => $sort, 'sortdir' => $sortdir, 'page' => $page]
+    );
     $record[0] = html_writer::link($url, $record[0]);
 }
 
@@ -91,11 +93,24 @@ foreach ($records as &$record) {
 $header = $output->print_header();
 $title = $output->heading($title);
 /* Output attempts table */
-$reporttable = $output->get_report_table($headers, $records, $cm, '/mod/adaptivequiz/questionanalysis/overview.php', $sort,
-    $sortdir);
+$reporttable = $output->get_report_table(
+    $headers,
+    $records,
+    $cm,
+    '/mod/adaptivequiz/questionanalysis/overview.php',
+    $sort,
+    $sortdir
+);
 /* Output paging bar */
-$pagingbar = $output->print_paging_bar($recordscount, $page, ADAPTIVEQUIZ_REC_PER_PAGE, $cm,
-    '/mod/adaptivequiz/questionanalysis/overview.php', $sort, $sortdir);
+$pagingbar = $output->print_paging_bar(
+    $recordscount,
+    $page,
+    ADAPTIVEQUIZ_REC_PER_PAGE,
+    $cm,
+    '/mod/adaptivequiz/questionanalysis/overview.php',
+    $sort,
+    $sortdir
+);
 /* Output footer information */
 $footer = $output->print_footer();
 

@@ -23,7 +23,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_adaptivequiz_activity_structure_step extends backup_questions_activity_structure_step {
-
     /**
      * Define the backup structure.
      *
@@ -34,10 +33,10 @@ class backup_adaptivequiz_activity_structure_step extends backup_questions_activ
         $userinfo = $this->get_setting_value('userinfo');
 
         // Define each element separated.
-        $nodes = ['name', 'intro', 'introformat', 'attempts', 'password', 'browsersecurity', 'attemptfeedback',
-            'attemptfeedbackformat', 'showabilitymeasure', 'showattemptprogress', 'highestlevel', 'lowestlevel', 'minimumquestions',
-            'maximumquestions', 'standarderror', 'startinglevel', 'timecreated', 'timemodified', 'completionattemptcompleted',
-            'catmodel'];
+        $nodes = ['name', 'intro', 'introformat', 'attempts', 'password', 'browsersecurity', 'attemptfeedbackenable',
+            'attemptfeedback', 'attemptfeedbackformat', 'showabilitymeasure', 'showabilitymeasurefeedback',
+            'showabilitymeasuresummary', 'showattemptprogress', 'highestlevel', 'lowestlevel', 'minimumquestions',
+            'maximumquestions', 'standarderror', 'startinglevel', 'timecreated', 'timemodified', 'completionattemptcompleted'];
         $adaptivequiz = new backup_nested_element('adaptivequiz', ['id'], $nodes);
 
         // Attempts.
@@ -70,7 +69,7 @@ class backup_adaptivequiz_activity_structure_step extends backup_questions_activ
             $sql = 'SELECT *
                       FROM {adaptivequiz_attempt}
                      WHERE instance = :instance';
-            $param = array('instance' => backup::VAR_PARENTID);
+            $param = ['instance' => backup::VAR_PARENTID];
             $adaptiveattempt->set_source_sql($sql, $param);
         }
 
@@ -79,6 +78,7 @@ class backup_adaptivequiz_activity_structure_step extends backup_questions_activ
         $adaptiveattempt->annotate_ids('user', 'userid');
 
         $adaptivequiz->annotate_files('mod_adaptivequiz', 'intro', null); // This file area hasn't itemid.
+        $adaptivequiz->annotate_files('mod_adaptivequiz', 'attemptfeedback', null);
 
         return $this->prepare_activity_structure($adaptivequiz);
     }

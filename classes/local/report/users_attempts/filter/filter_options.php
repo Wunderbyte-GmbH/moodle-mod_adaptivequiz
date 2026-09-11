@@ -23,28 +23,46 @@
 
 namespace mod_adaptivequiz\local\report\users_attempts\filter;
 
+/**
+ * Filter options.
+ */
 final class filter_options {
-
+    /** Enrolled users with no attempts. */
     public const ENROLLED_USERS_WITH_NO_ATTEMPTS = 1;
 
+    /** Enrolled users with attempts. */
     public const ENROLLED_USERS_WITH_ATTEMPTS = 2;
 
+    /** Both enrolled and not enrolled users with attempts. */
     public const BOTH_ENROLLED_AND_NOT_ENROLLED_USERS_WITH_ATTEMPTS = 3;
 
+    /** Not enrolled users with attempts. */
     public const NOT_ENROLLED_USERS_WITH_ATTEMPTS = 4;
 
+    /** Include inactive enrolments default. */
     public const INCLUDE_INACTIVE_ENROLMENTS_DEFAULT = 1;
 
+    /**
+     * Users option default.
+     *
+     * @return int
+     */
     public static function users_option_default(): int {
         return self::BOTH_ENROLLED_AND_NOT_ENROLLED_USERS_WITH_ATTEMPTS;
     }
 
+    /**
+     * Users option exists.
+     *
+     * @param int $option Option.
+     * @return bool
+     */
     public static function users_option_exists(int $option): bool {
         return in_array($option, [
             self::ENROLLED_USERS_WITH_NO_ATTEMPTS,
             self::ENROLLED_USERS_WITH_ATTEMPTS,
             self::BOTH_ENROLLED_AND_NOT_ENROLLED_USERS_WITH_ATTEMPTS,
-            self::NOT_ENROLLED_USERS_WITH_ATTEMPTS
+            self::NOT_ENROLLED_USERS_WITH_ATTEMPTS,
         ]);
     }
 }

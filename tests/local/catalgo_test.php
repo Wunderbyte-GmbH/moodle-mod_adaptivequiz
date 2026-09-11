@@ -19,38 +19,28 @@ namespace mod_adaptivequiz\local;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot.'/mod/adaptivequiz/locallib.php');
+require_once($CFG->dirroot . '/mod/adaptivequiz/locallib.php');
 
 use advanced_testcase;
-use coding_exception;
+use context_module;
+use PHPUnit\Framework\Attributes\CoversClass;
 use question_usage_by_activity;
 use stdClass;
 
 /**
  * PHPUnit tests for catalgo class.
  *
- * @pacakage   mod_adaptivequiz
+ * @package    mod_adaptivequiz
  * @copyright  2013 Remote-Learner {@link http://www.remote-learner.ca/}
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_adaptivequiz\local\catalgo
  */
-class catalgo_test extends advanced_testcase {
-    /**
-     * This function loads data into the PHPUnit tables for testing
-     *
-     * @throws coding_exception
-     */
-    protected function setup_test_data_xml() {
-        $this->dataset_from_files(
-            [__DIR__.'/../fixtures/mod_adaptivequiz_catalgo.xml']
-        )->to_database();
-    }
-
+#[CoversClass(\mod_adaptivequiz\local\catalgo::class)]
+final class catalgo_test extends advanced_testcase {
     /**
      * This function tests instantiating the catalgo class without an instance of question_usage_by_activity.
      */
-    public function test_init_catalgo_no_quba_object_instance() {
+    public function test_init_catalgo_no_quba_object_instance(): void {
         $this->resetAfterTest(true);
 
         $this->expectException('coding_exception');
@@ -60,10 +50,10 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests instantiating the catalgo class with a non-positive integer and throwing an exception.
      */
-    public function test_init_catalgo_negative_int_throw_except() {
+    public function test_init_catalgo_negative_int_throw_except(): void {
         $this->resetAfterTest(true);
 
-        $mockquba = $this->createMock('question_usage_by_activity', array(), array(), '', false);
+        $mockquba = $this->createMock('question_usage_by_activity', [], [], '', false);
 
         $this->expectException('coding_exception');
         $algo = new catalgo($mockquba, -1);
@@ -72,62 +62,110 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests instantiating the catalgo class without setting the level argument.
      */
-    public function test_init_catalgo_no_level_throw_except() {
+    public function test_init_catalgo_no_level_throw_except(): void {
         $this->resetAfterTest(true);
 
-        $mockquba = $this->createMock('question_usage_by_activity', array(), array(), '', false);
+        $mockquba = $this->createMock('question_usage_by_activity', [], [], '', false);
 
         $this->expectException('coding_exception');
         $algo = new catalgo($mockquba, 1, true);
     }
 
     /**
-     * This fuction tests the retrieval of an attempt record
+     * This function tests the retrieval of an attempt record.
      */
-    public function test_retrieve_attempt_record() {
-        $this->resetAfterTest(true);
-        $this->setup_test_data_xml();
+    public function test_retrieve_attempt_record(): void {
+        $this->resetAfterTest();
 
-        $mockquba = $this->createMock('question_usage_by_activity', array(), array(), '', false);
+        $modgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaptivequiz');
 
-        $algo = new catalgo($mockquba, 1, true, 1);
+        $course = $this->getDataGenerator()->create_course();
 
-        $result = $algo->retrieve_attempt_record(1);
-        $expected = new stdClass();
-        $expected->id = 1;
-        $expected->questionsattempted = 0;
-        $expected->difficultysum = 99;
-        $expected->standarderror = 1.2;
-        $expected->lowestlevel = 1;
-        $expected->highestlevel = 100;
-        $expected->measure = 2.222;
+        $adaptivequiz = $modgenerator->create_instance([
+            'course' => $course->id,
+            'questionpool' => [],
+        ]);
 
-        $this->assertEquals($expected, $result);
+        $context = context_module::instance($adaptivequiz->cmid);
+
+        $adaptivequizforattempt = clone($adaptivequiz);
+        $adaptivequizforattempt->context = $context;
+
+        $user = $this->getDataGenerator()->create_user();
+
+        $attempt = new attempt($adaptivequizforattempt, $user->id);
+
+        $mockquba = $this->createMock('question_usage_by_activity');
+
+        // End of setup.
+
+        $attemptrecord = $attempt->get_attempt();
+
+        $algo = new catalgo($mockquba, $attemptrecord->id, true, 1);
+
+        $result = $algo->retrieve_attempt_record($attemptrecord->id);
+
+        // Cast the float values to eliminate the data representation issues.
+        $result->difficultysum = (float) $result->difficultysum;
+        $result->measure = (float) $result->measure;
+
+        $this->assertEquals((object) [
+            'id' => (string) $attemptrecord->id,
+            'highestlevel' => $adaptivequiz->highestlevel,
+            'lowestlevel' => $adaptivequiz->lowestlevel,
+            'difficultysum' => '0.0000000',
+            'questionsattempted' => '0',
+            'standarderror' => '999.00000',
+            'measure' => '0.00000',
+        ], $result);
     }
 
     /**
      * This function tests the retrieval of using illegible attempt id.
      */
-    public function test_retrieve_illegit_attempt_record_throw_except() {
-        $this->resetAfterTest(true);
-        $this->setup_test_data_xml();
+    public function test_retrieve_illegit_attempt_record_throw_except(): void {
+        $this->resetAfterTest();
 
-        $mockquba = $this->createMock('question_usage_by_activity', array(), array(), '', false);
+        $modgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaptivequiz');
 
-        $algo = new catalgo($mockquba, 1, true, 1);
+        $course = $this->getDataGenerator()->create_course();
+
+        $adaptivequiz = $modgenerator->create_instance([
+            'course' => $course->id,
+            'questionpool' => [],
+        ]);
+
+        $context = context_module::instance($adaptivequiz->cmid);
+
+        $adaptivequizforattempt = clone($adaptivequiz);
+        $adaptivequizforattempt->context = $context;
+
+        $user = $this->getDataGenerator()->create_user();
+
+        $attempt = new attempt($adaptivequizforattempt, $user->id);
+
+        $mockquba = $this->createMock('question_usage_by_activity');
+
+        // End of setup.
+
+        $attemptrecord = $attempt->get_attempt();
+
+        $algo = new catalgo($mockquba, $attemptrecord->id, true, 1);
 
         $this->expectException('dml_missing_record_exception');
-        $result = $algo->retrieve_attempt_record(511);
+        $algo->retrieve_attempt_record($attemptrecord->id + 1);
     }
 
     /**
      * This function tests was_answer_submitted_to_question() returning a false instead of a true
      */
-    public function test_quest_was_marked_correct_no_submit_prev_quest_fail() {
+    public function test_quest_was_marked_correct_no_submit_prev_quest_fail(): void {
         $this->resetAfterTest(true);
 
-        $mockcatalgo = $this->createPartialMock(catalgo::class,
-            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']);
+        $mockcatalgo = $this->createPartialMock(
+            catalgo::class,
+            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']
+        );
         $mockcatalgo->expects($this->once())
             ->method('find_last_quest_used_by_attempt')
             ->willReturn(99);
@@ -145,11 +183,13 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests was_answer_submitted_to_question() returning a 0 instead of a slot number
      */
-    public function test_quest_was_marked_correct_zero_slot_number_fail() {
+    public function test_quest_was_marked_correct_zero_slot_number_fail(): void {
         $this->resetAfterTest(true);
 
-        $mockcatalgo = $this->createPartialMock(catalgo::class,
-            ['find_last_quest_used_by_attempt', 'get_question_mark']);
+        $mockcatalgo = $this->createPartialMock(
+            catalgo::class,
+            ['find_last_quest_used_by_attempt', 'get_question_mark']
+        );
         $mockcatalgo->expects($this->once())
             ->method('find_last_quest_used_by_attempt')
             ->willReturn(0);
@@ -163,11 +203,13 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests get_question_mark() returning null
      */
-    public function test_quest_was_marked_correct_mark_is_null_fail() {
+    public function test_quest_was_marked_correct_mark_is_null_fail(): void {
         $this->resetAfterTest(true);
 
-        $mockcatalgo = $this->createPartialMock(catalgo::class,
-            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']);
+        $mockcatalgo = $this->createPartialMock(
+            catalgo::class,
+            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']
+        );
         $mockcatalgo->expects($this->once())
             ->method('find_last_quest_used_by_attempt')
             ->willReturn(99);
@@ -187,11 +229,13 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests get_question_mark() returning a mark of zero
      */
-    public function test_quest_was_marked_correct_mark_zero() {
+    public function test_quest_was_marked_correct_mark_zero(): void {
         $this->resetAfterTest(true);
 
-        $mockcatalgo = $this->createPartialMock(catalgo::class,
-            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']);
+        $mockcatalgo = $this->createPartialMock(
+            catalgo::class,
+            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']
+        );
         $mockcatalgo->expects($this->once())
             ->method('find_last_quest_used_by_attempt')
             ->willReturn(99);
@@ -211,11 +255,13 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests get_question_mark() returning a mark of greater than zero
      */
-    public function test_quest_was_marked_correct_mark_non_zero() {
+    public function test_quest_was_marked_correct_mark_non_zero(): void {
         $this->resetAfterTest(true);
 
-        $mockcatalgo = $this->createPartialMock(catalgo::class,
-            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']);
+        $mockcatalgo = $this->createPartialMock(
+            catalgo::class,
+            ['find_last_quest_used_by_attempt', 'was_answer_submitted_to_question', 'get_question_mark']
+        );
         $mockcatalgo->expects($this->once())
             ->method('find_last_quest_used_by_attempt')
             ->willReturn(99);
@@ -235,38 +281,81 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests retrieve_standard_error(), retrieving the standard error value set for the activity.
      */
-    public function test_retrieve_standard_error() {
-        $this->resetAfterTest(true);
-        $this->setup_test_data_xml();
+    public function test_retrieve_standard_error(): void {
+        $this->resetAfterTest();
 
-        $mockquba = $this->createMock(question_usage_by_activity::class);
+        $modgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaptivequiz');
 
-        $algo = new catalgo($mockquba, 1, true, 1);
+        $course = $this->getDataGenerator()->create_course();
 
-        $result = $algo->retrieve_standard_error(1);
-        $this->assertEquals(9.9, $result);
+        $adaptivequiz = $modgenerator->create_instance([
+            'course' => $course->id,
+            'standarderror' => 15,
+            'questionpool' => [],
+        ]);
+
+        $context = context_module::instance($adaptivequiz->cmid);
+
+        $adaptivequizforattempt = clone($adaptivequiz);
+        $adaptivequizforattempt->context = $context;
+
+        $user = $this->getDataGenerator()->create_user();
+
+        $attempt = new attempt($adaptivequizforattempt, $user->id);
+
+        $mockquba = $this->createMock('question_usage_by_activity');
+
+        // End of setup.
+
+        $attemptrecord = $attempt->get_attempt();
+
+        $algo = new catalgo($mockquba, $attemptrecord->id, true, 1);
+
+        $result = $algo->retrieve_standard_error($attemptrecord->id);
+        $this->assertEquals($adaptivequiz->standarderror, $result);
     }
 
     /**
      * This function tests retrieve_standard_error() with illegible attempt id.
      */
-    public function test_retrieve_standard_error_throw_excep() {
-        $this->resetAfterTest(true);
-        $this->setup_test_data_xml();
+    public function test_retrieve_standard_error_throw_excep(): void {
+        $this->resetAfterTest();
+
+        $modgenerator = $this->getDataGenerator()->get_plugin_generator('mod_adaptivequiz');
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $adaptivequiz = $modgenerator->create_instance([
+            'course' => $course->id,
+            'questionpool' => [],
+        ]);
+
+        $context = context_module::instance($adaptivequiz->cmid);
+
+        $adaptivequizforattempt = clone($adaptivequiz);
+        $adaptivequizforattempt->context = $context;
+
+        $user = $this->getDataGenerator()->create_user();
+
+        $attempt = new attempt($adaptivequizforattempt, $user->id);
 
         $mockquba = $this->createMock('question_usage_by_activity');
 
-        $algo = new catalgo($mockquba, 1, true, 1);
+        // End of setup.
+
+        $attemptrecord = $attempt->get_attempt();
+
+        $algo = new catalgo($mockquba, $attemptrecord->id, true, 1);
 
         $this->expectException('dml_missing_record_exception');
-        $result = $algo->retrieve_standard_error(511);
+        $algo->retrieve_standard_error($attemptrecord->id + 1);
     }
 
     /**
      * This function tests compute_next_difficulty()
      * Setting 0 as the lowest level and 100 as the highest level
      */
-    public function test_compute_next_difficulty_zero_min_one_hundred_max() {
+    public function test_compute_next_difficulty_zero_min_one_hundred_max(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock(question_usage_by_activity::class);
@@ -302,7 +391,7 @@ class catalgo_test extends advanced_testcase {
      * This function tests compute_next_difficulty()
      * Setting 1 as the lowest level and 10 as the highest level
      */
-    public function test_compute_next_difficulty_one_min_ten_max_compute_infinity() {
+    public function test_compute_next_difficulty_one_min_ten_max_compute_infinity(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock(question_usage_by_activity::class);
@@ -323,7 +412,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests results returned from get_question_mark()
      */
-    public function test_get_question_mark() {
+    public function test_get_question_mark(): void {
         $this->resetAfterTest(true);
 
         // Test quba returning a mark of 1.0.
@@ -331,7 +420,7 @@ class catalgo_test extends advanced_testcase {
 
         $mockquba->expects($this->once())
             ->method('get_question_mark')
-            ->will($this->returnValue(1.0));
+            ->willReturn(1.0);
 
         $catalgo = new catalgo($mockquba, 1, true, 1);
         $result = $catalgo->get_question_mark($mockquba, 1);
@@ -342,7 +431,7 @@ class catalgo_test extends advanced_testcase {
 
         $mockqubatwo->expects($this->once())
             ->method('get_question_mark')
-            ->will($this->returnValue(1));
+            ->willReturn(1);
 
         $catalgo = new catalgo($mockqubatwo, 1, true, 1);
         $result = $catalgo->get_question_mark($mockqubatwo, 1);
@@ -352,7 +441,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from compute_right_answers()
      */
-    public function test_compute_right_answers() {
+    public function test_compute_right_answers(): void {
         $this->resetAfterTest(true);
 
         // Test use case where user got all 5 question correct.
@@ -373,7 +462,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from compute_right_answers()
      */
-    public function test_compute_right_answers_none_correct() {
+    public function test_compute_right_answers_none_correct(): void {
         $this->resetAfterTest(true);
 
         // Test use case where user got all 5 question incorrect.
@@ -381,11 +470,11 @@ class catalgo_test extends advanced_testcase {
 
         $mockquba->expects($this->exactly(5))
             ->method('get_question_mark')
-            ->will($this->returnValue(0));
+            ->willReturn(0);
 
         $mockquba->expects($this->once())
             ->method('get_slots')
-            ->will($this->returnValue(array(1, 2, 3, 4, 5)));
+            ->willReturn([1, 2, 3, 4, 5]);
 
         $catalgo = new catalgo($mockquba, 1, true, 1);
         $result = $catalgo->compute_right_answers($mockquba);
@@ -395,18 +484,18 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from compute_right_answers() when get_question_mark() returns a null
      */
-    public function test_compute_right_answers_null_return_from_get_question_mark() {
+    public function test_compute_right_answers_null_return_from_get_question_mark(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock('question_usage_by_activity');
 
         $mockquba->expects($this->once())
             ->method('get_question_mark')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
 
         $mockquba->expects($this->once())
             ->method('get_slots')
-            ->will($this->returnValue(array(1)));
+            ->willReturn([1]);
 
         $catalgo = new catalgo($mockquba, 1, true, 1);
         $result = $catalgo->compute_right_answers($mockquba);
@@ -416,7 +505,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from compute_right_answers()
      */
-    public function test_compute_wrong_answers() {
+    public function test_compute_wrong_answers(): void {
         $this->resetAfterTest(true);
 
         // Test use case where user got all 5 question incorrect.
@@ -424,11 +513,11 @@ class catalgo_test extends advanced_testcase {
 
         $mockquba->expects($this->exactly(5))
             ->method('get_question_mark')
-            ->will($this->returnValue(0));
+            ->willReturn(0);
 
         $mockquba->expects($this->once())
             ->method('get_slots')
-            ->will($this->returnValue(array(1, 2, 3, 4, 5)));
+            ->willReturn([1, 2, 3, 4, 5]);
 
         $catalgo = new catalgo($mockquba, 1, true, 1);
         $result = $catalgo->compute_wrong_answers($mockquba);
@@ -438,7 +527,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from compute_right_answers()
      */
-    public function test_compute_wrong_answers_all_correct() {
+    public function test_compute_wrong_answers_all_correct(): void {
         $this->resetAfterTest(true);
 
         // Test use case where user got all 5 question correct.
@@ -446,11 +535,11 @@ class catalgo_test extends advanced_testcase {
 
         $mockquba->expects($this->exactly(5))
             ->method('get_question_mark')
-            ->will($this->returnValue(1.0));
+            ->willReturn(1.0);
 
         $mockquba->expects($this->once())
             ->method('get_slots')
-            ->will($this->returnValue(array(1, 2, 3, 4, 5)));
+            ->willReturn([1, 2, 3, 4, 5]);
 
         $catalgo = new catalgo($mockquba, 1, true, 1);
         $result = $catalgo->compute_wrong_answers($mockquba);
@@ -460,18 +549,18 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from compute_wrong_answers() when get_question_mark() returns a null
      */
-    public function test_compute_wrong_answers_null_return_from_get_question_mark() {
+    public function test_compute_wrong_answers_null_return_from_get_question_mark(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock('question_usage_by_activity');
 
         $mockquba->expects($this->once())
             ->method('get_question_mark')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
 
         $mockquba->expects($this->once())
             ->method('get_slots')
-            ->will($this->returnValue(array(1)));
+            ->willReturn([1]);
 
         $catalgo = new catalgo($mockquba, 1, true, 1);
         $result = $catalgo->compute_wrong_answers($mockquba);
@@ -481,10 +570,10 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from estimate_measure()
      */
-    public function test_estimate_measure() {
+    public function test_estimate_measure(): void {
         $this->resetAfterTest(true);
 
-        $mockquba = $this->createMock('question_usage_by_activity', array(), array(), '', false);
+        $mockquba = $this->createMock('question_usage_by_activity', [], [], '', false);
 
         // Test an attempt with the following details:
         // sum of difficulty - 20, number of questions attempted - 10, number of correct answers - 7,
@@ -497,10 +586,10 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from estimate_standard_error()
      */
-    public function test_estimate_standard_error() {
+    public function test_estimate_standard_error(): void {
         $this->resetAfterTest(true);
 
-        $mockquba = $this->createMock('question_usage_by_activity', array(), array(), '', false);
+        $mockquba = $this->createMock('question_usage_by_activity', [], [], '', false);
 
         // Test an attempt with the following details;
         // sum of questions attempted - 10, number of correct answers - 7, number of incorrect answers - 3.
@@ -512,7 +601,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from perform_calculation_steps(), where question_was_marked_correct() returns null
      */
-    public function test_perform_calc_steps_marked_correct_return_null_fail() {
+    public function test_perform_calc_steps_marked_correct_return_null_fail(): void {
         $this->resetAfterTest(true);
 
         $mockcatalgo = $this->createPartialMock(catalgo::class, ['retrieve_attempt_record',
@@ -553,7 +642,7 @@ class catalgo_test extends advanced_testcase {
      * This function tests the return data from perform_calculation_steps(), where compute_right_answers() returns 0,
      * but the next difficulty number is returned.
      */
-    public function test_perform_calc_steps_right_ans_ret_zero_but_return_non_zero() {
+    public function test_perform_calc_steps_right_ans_ret_zero_but_return_non_zero(): void {
         $this->resetAfterTest(true);
 
         $mockcatalgo = $this->createPartialMock(catalgo::class, ['retrieve_attempt_record',
@@ -592,7 +681,7 @@ class catalgo_test extends advanced_testcase {
      * This function tests the return data from perform_calculation_steps(), where compute_wrong_answers() returns 0,
      * but the next difficulty number is returned.
      */
-    public function test_perform_calc_steps_wrong_ans_return_zero_but_return_non_zero() {
+    public function test_perform_calc_steps_wrong_ans_return_zero_but_return_non_zero(): void {
         $this->resetAfterTest(true);
 
         $mockcatalgo = $this->createPartialMock(catalgo::class, ['retrieve_attempt_record', 'question_was_marked_correct',
@@ -628,7 +717,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return data from perform_calculation_steps(), where questions attempted is set to 0
      */
-    public function test_perform_calc_steps_quest_attempted_return_zero_fail() {
+    public function test_perform_calc_steps_quest_attempted_return_zero_fail(): void {
         $this->resetAfterTest(true);
 
         $mockcatalgo = $this->createPartialMock(catalgo::class, ['retrieve_attempt_record',
@@ -672,7 +761,7 @@ class catalgo_test extends advanced_testcase {
      * This function tests the return data from perform_calculation_steps(), where the sum of correct and incorrect answers
      * does not equal the sum of questions attempted.
      */
-    public function test_perform_calc_steps_sum_corr_and_incorr_not_equl_sum_quest_attempt_fail() {
+    public function test_perform_calc_steps_sum_corr_and_incorr_not_equl_sum_quest_attempt_fail(): void {
         $this->resetAfterTest(true);
 
         $mockcatalgo = $this->createPartialMock(catalgo::class, ['retrieve_attempt_record', 'question_was_marked_correct',
@@ -715,7 +804,7 @@ class catalgo_test extends advanced_testcase {
      * This function tests the return data from perform_calculation_steps(), where the user answered
      * the last question correctly and the attempt has not met the minimum stopping criteria.
      */
-    public function test_perform_calculation_steps_nostop_correct_answer() {
+    public function test_perform_calculation_steps_nostop_correct_answer(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock(question_usage_by_activity::class);
@@ -767,7 +856,7 @@ class catalgo_test extends advanced_testcase {
      * This function tests the return data from perform_calculation_steps(), where the user answered
      * the last question incorrectly and the attempt has not met the minimum stopping criteria.
      */
-    public function test_perform_calculation_steps_nostop_incorrect_answer() {
+    public function test_perform_calculation_steps_nostop_incorrect_answer(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock(question_usage_by_activity::class);
@@ -819,7 +908,7 @@ class catalgo_test extends advanced_testcase {
      * This function tests the return data from perform_calculation_steps(), where the attempt has met
      * all the criteria to determine the standard error and the function runs from beginning to end.
      */
-    public function test_perform_calculation_steps_stop_no_fail() {
+    public function test_perform_calculation_steps_stop_no_fail(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock(question_usage_by_activity::class);
@@ -875,7 +964,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the return value from standard_error_within_parameters().
      */
-    public function test_standard_error_within_parameters_return_true_then_false() {
+    public function test_standard_error_within_parameters_return_true_then_false(): void {
         $this->resetAfterTest(true);
 
         $mockquba = $this->createMock('question_usage_by_activity');
@@ -889,9 +978,169 @@ class catalgo_test extends advanced_testcase {
     }
 
     /**
+     * This function tests the return value from get_current_diff_level().
+     */
+    public function test_get_current_diff_level_using_level_zero(): void {
+        $this->resetAfterTest(true);
+
+        $dummy = new stdClass();
+        $dummy->lowestlevel = 1;
+        $dummy->highestlevel = 20;
+
+        $mockquba = $this->createMock(question_usage_by_activity::class);
+        $mockcatalgo = $this
+            ->getMockBuilder(catalgo::class)
+            ->onlyMethods(
+                ['return_current_diff_level']
+            )
+            ->setConstructorArgs(
+                [$mockquba, 1, true, 50]
+            )
+            ->getMock();
+        $mockcatalgo->expects($this->never())
+            ->method('return_current_diff_level');
+
+        $this->expectException('coding_exception');
+        $mockcatalgo->get_current_diff_level($mockquba, 0, $dummy);
+    }
+
+    /**
+     * This function tests the return value from get_current_diff_level()
+     */
+    public function test_get_current_diff_level_using_no_quba(): void {
+        $this->resetAfterTest(true);
+
+        $dummy = new stdClass();
+        $dummy->lowestlevel = 1;
+        $dummy->highestlevel = 20;
+
+        $mockquba = $this->createMock(question_usage_by_activity::class);
+        $mockcatalgo = $this
+            ->getMockBuilder(catalgo::class)
+            ->onlyMethods(
+                ['return_current_diff_level']
+            )
+            ->setConstructorArgs(
+                [$mockquba, 1, true, 50]
+            )
+            ->getMock();
+        $mockcatalgo->expects($this->never())
+            ->method('return_current_diff_level');
+
+        $this->expectException('coding_exception');
+        $mockcatalgo->get_current_diff_level($dummy, 1, $dummy);
+    }
+
+    /**
+     * This function tests the return value from get_current_diff_level()
+     */
+    public function test_get_current_diff_level_using_no_attempt_obj(): void {
+        $this->resetAfterTest(true);
+
+        $dummy = new stdClass();
+
+        $mockquba = $this->createMock(question_usage_by_activity::class);
+        $mockcatalgo = $this
+            ->getMockBuilder(catalgo::class)
+            ->onlyMethods(
+                ['return_current_diff_level']
+            )
+            ->setConstructorArgs(
+                [$mockquba, 1, true, 50]
+            )
+            ->getMock();
+        $mockcatalgo->expects($this->never())
+            ->method('return_current_diff_level');
+
+        $this->expectException('coding_exception');
+        $mockcatalgo->get_current_diff_level($mockquba, 1, $dummy);
+    }
+
+    /**
+     * This function tests the return value from get_current_diff_level()
+     */
+    public function test_get_current_diff_level_using_attempt_obj_missing_lowestlevel(): void {
+        $this->resetAfterTest(true);
+
+        $dummy = new stdClass();
+        $dummy->highestlevel = 20;
+
+        $mockquba = $this->createMock(question_usage_by_activity::class);
+        $mockcatalgo = $this
+            ->getMockBuilder(catalgo::class)
+            ->onlyMethods(
+                ['return_current_diff_level']
+            )
+            ->setConstructorArgs(
+                [$mockquba, 1, true, 50]
+            )
+            ->getMock();
+        $mockcatalgo->expects($this->never())
+            ->method('return_current_diff_level');
+
+        $this->expectException('coding_exception');
+        $mockcatalgo->get_current_diff_level($mockquba, 1, $dummy);
+    }
+
+    /**
+     * This function tests the return value from get_current_diff_level()
+     */
+    public function test_get_current_diff_level_using_attempt_obj_missing_highestlevel(): void {
+        $this->resetAfterTest(true);
+
+        $dummy = new stdClass();
+        $dummy->lowestlevel = 20;
+
+        $mockquba = $this->createMock(question_usage_by_activity::class);
+        $mockcatalgo = $this
+            ->getMockBuilder(catalgo::class)
+            ->onlyMethods(
+                ['return_current_diff_level']
+            )
+            ->setConstructorArgs(
+                [$mockquba, 1, true, 50]
+            )
+            ->getMock();
+        $mockcatalgo->expects($this->never())
+            ->method('return_current_diff_level');
+
+        $this->expectException('coding_exception');
+        $mockcatalgo->get_current_diff_level($mockquba, 1, $dummy);
+    }
+
+    /**
+     * This function tests the return value from get_current_diff_level()
+     */
+    public function test_get_current_diff_level(): void {
+        $this->resetAfterTest(true);
+
+        $dummy = new stdClass();
+        $dummy->lowestlevel = 20;
+        $dummy->highestlevel = 21;
+
+        $mockquba = $this->createMock(question_usage_by_activity::class);
+        $mockcatalgo = $this
+            ->getMockBuilder(catalgo::class)
+            ->onlyMethods(
+                ['return_current_diff_level']
+            )
+            ->setConstructorArgs(
+                [$mockquba, 1, true, 50]
+            )
+            ->getMock();
+        $mockcatalgo->expects($this->once())
+            ->method('return_current_diff_level')
+            ->willReturn(3);
+
+        $result = $mockcatalgo->get_current_diff_level($mockquba, 1, $dummy);
+
+        $this->assertEquals(3, $result);
+    }
+
+    /**
      * This function tests the output from convert_percent_to_logit()
      */
-    public function test_convert_percent_to_logit_using_param_less_than_zero() {
+    public function test_convert_percent_to_logit_using_param_less_than_zero(): void {
         $this->resetAfterTest(true);
 
         $this->expectException('coding_exception');
@@ -901,7 +1150,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the output from convert_percent_to_logit()
      */
-    public function test_convert_percent_to_logit_using_param_greater_than_decimal_five() {
+    public function test_convert_percent_to_logit_using_param_greater_than_decimal_five(): void {
         $this->resetAfterTest(true);
 
         $this->expectException('coding_exception');
@@ -911,7 +1160,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the output from convert_percent_to_logit()
      */
-    public function test_convert_percent_to_logit() {
+    public function test_convert_percent_to_logit(): void {
         $this->resetAfterTest(true);
         $result = catalgo::convert_percent_to_logit(0.05);
         $result = round($result, 1);
@@ -921,7 +1170,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the output from convert_logit_to_percent()
      */
-    public function test_convert_logit_to_percent_using_param_less_than_zero() {
+    public function test_convert_logit_to_percent_using_param_less_than_zero(): void {
         $this->resetAfterTest(true);
 
         $this->expectException('coding_exception');
@@ -931,7 +1180,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the output from convert_logit_to_percent()
      */
-    public function test_convert_logit_to_percent() {
+    public function test_convert_logit_to_percent(): void {
         $this->resetAfterTest(true);
         $result = catalgo::convert_logit_to_percent(0.2);
         $result = round($result, 2);
@@ -941,7 +1190,7 @@ class catalgo_test extends advanced_testcase {
     /**
      * This function tests the output from map_logit_to_scale()
      */
-    public function test_map_logit_to_scale() {
+    public function test_map_logit_to_scale(): void {
         $this->resetAfterTest(true);
         $result = catalgo::map_logit_to_scale(-0.6, 16, 1);
         $result = round($result, 1);

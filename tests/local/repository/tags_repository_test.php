@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_adaptivequiz\local\repository;
 
 use advanced_testcase;
@@ -26,12 +21,17 @@ use coding_exception;
 use context_course;
 use core_question_generator;
 use core_tag_tag;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
- * @covers \mod_adaptivequiz\local\repository\tags_repository
+ * A test class.
+ *
+ * @package    mod_adaptivequiz
+ * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tags_repository_test extends advanced_testcase {
-
+#[CoversClass(\mod_adaptivequiz\local\repository\tags_repository::class)]
+final class tags_repository_test extends advanced_testcase {
     public function test_it_gets_question_level_to_tag_id_mapping_by_tag_names(): void {
         $this->resetAfterTest();
 
@@ -72,7 +72,7 @@ class tags_repository_test extends advanced_testcase {
 
         $questionstags = core_tag_tag::get_items_tags('core_question', 'question', [$question1->id, $question2->id]);
 
-        $tagidlist = array_map(function(array $itemtags): int {
+        $tagidlist = array_map(function (array $itemtags): int {
             return $itemtags[array_key_first($itemtags)]->id;
         }, $questionstags);
 
@@ -128,7 +128,7 @@ class tags_repository_test extends advanced_testcase {
 
         $questionstags = core_tag_tag::get_items_tags('core_question', 'question', [$question1->id, $question2->id]);
 
-        $itemtagidlist = array_map(function(array $itemtags): int {
+        $itemtagidlist = array_map(function (array $itemtags): int {
             return $itemtags[array_key_first($itemtags)]->id;
         }, $questionstags);
 

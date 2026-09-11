@@ -26,13 +26,16 @@ namespace mod_adaptivequiz\local\questionanalysis\statistics;
 
 use mod_adaptivequiz\local\questionanalysis\question_analyser;
 
+/**
+ * Question statistic.
+ */
 interface question_statistic {
     /**
      * Answer a display-name for this statistic.
      *
      * @return string
      */
-    public function get_display_name ();
+    public function get_display_name();
 
     /**
      * Calculate this statistic for a question's results
@@ -40,5 +43,5 @@ interface question_statistic {
      * @param question_analyser $analyser
      * @return question_statistic_result
      */
-    public function calculate (question_analyser $analyser);
+    public function calculate(question_analyser $analyser);
 }

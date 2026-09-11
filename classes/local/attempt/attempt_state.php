@@ -25,10 +25,14 @@ declare(strict_types=1);
 
 namespace mod_adaptivequiz\local\attempt;
 
+/**
+ * Attempt state.
+ */
 final class attempt_state {
-
+    /** In progress. */
     public const IN_PROGRESS = 'inprogress';
 
+    /** Completed. */
     public const COMPLETED = 'complete';
 
     /**
@@ -36,22 +40,47 @@ final class attempt_state {
      */
     private $stateasstring;
 
+    /**
+     * Construct.
+     *
+     * @param string $state State.
+     */
     private function __construct(string $state) {
         $this->stateasstring = $state;
     }
 
+    /**
+     * Returns whether in progress.
+     *
+     * @return bool
+     */
     public function is_in_progress(): bool {
         return self::IN_PROGRESS === $this->stateasstring;
     }
 
+    /**
+     * Returns whether completed.
+     *
+     * @return bool
+     */
     public function is_completed(): bool {
         return self::COMPLETED === $this->stateasstring;
     }
 
+    /**
+     * In progress.
+     *
+     * @return self
+     */
     public static function in_progress(): self {
         return new self(self::IN_PROGRESS);
     }
 
+    /**
+     * Completed.
+     *
+     * @return self
+     */
     public static function completed(): self {
         return new self(self::COMPLETED);
     }

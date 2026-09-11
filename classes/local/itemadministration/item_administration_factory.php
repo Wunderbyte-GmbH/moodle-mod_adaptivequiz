@@ -28,7 +28,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface item_administration_factory {
-
     /**
      * Instantiates an object of a class implementing the item administration interface.
      *

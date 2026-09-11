@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Filter form of the users attempts report.
+ *
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,19 +31,24 @@ use html_writer;
 use moodle_url;
 use moodleform;
 
+/**
+ * Filter form.
+ */
 final class filter_form extends moodleform {
-
     /**
      * Overrides the parent method to remove mandatory closing of fieldset before the submit button.
      * Ignores the arguments, as it contains its own logic to display the button.
-     *
-     * @inheritDoc
+     * @param mixed $cancel Cancel.
+     * @param mixed $submitlabel Submitlabel.
      */
-    public function add_action_buttons($cancel = true, $submitlabel=null) {
+    public function add_action_buttons($cancel = true, $submitlabel = null) {
         $form =& $this->_form;
         $form->addElement('submit', 'prefssubmit', get_string('reportattemptsfilterformsubmit', 'adaptivequiz'));
     }
 
+    /**
+     * Definition.
+     */
     protected function definition() {
         $form = $this->_form;
 
@@ -55,19 +62,36 @@ final class filter_form extends moodleform {
             filter_options::BOTH_ENROLLED_AND_NOT_ENROLLED_USERS_WITH_ATTEMPTS
                 => get_string('reportattemptsbothenrolledandnotenrolled', 'adaptivequiz'),
             filter_options::NOT_ENROLLED_USERS_WITH_ATTEMPTS
-                => get_string('reportattemptsnotenrolled', 'adaptivequiz')
+                => get_string('reportattemptsnotenrolled', 'adaptivequiz'),
         ];
-        $form->addElement('select', 'users', get_string('reportattemptsfilterusers', 'adaptivequiz'),
-            $enrolmentoptions);
+        $form->addElement(
+            'select',
+            'users',
+            get_string('reportattemptsfilterusers', 'adaptivequiz'),
+            $enrolmentoptions
+        );
         $form->setDefault('users', filter_options::users_option_default());
 
-        $form->addElement('advcheckbox', 'includeinactiveenrolments',
-            get_string('reportattemptsfilterincludeinactiveenrolments', 'adaptivequiz'), '&nbsp;', null, [0, 1]);
+        $form->addElement(
+            'advcheckbox',
+            'includeinactiveenrolments',
+            get_string('reportattemptsfilterincludeinactiveenrolments', 'adaptivequiz'),
+            '&nbsp;',
+            null,
+            [0, 1]
+        );
         $form->setDefault('includeinactiveenrolments', filter_options::INCLUDE_INACTIVE_ENROLMENTS_DEFAULT);
-        $form->addHelpButton('includeinactiveenrolments', 'reportattemptsfilterincludeinactiveenrolments',
-            'adaptivequiz');
-        $form->disabledIf('includeinactiveenrolments', 'users', 'eq',
-            filter_options::BOTH_ENROLLED_AND_NOT_ENROLLED_USERS_WITH_ATTEMPTS);
+        $form->addHelpButton(
+            'includeinactiveenrolments',
+            'reportattemptsfilterincludeinactiveenrolments',
+            'adaptivequiz'
+        );
+        $form->disabledIf(
+            'includeinactiveenrolments',
+            'users',
+            'eq',
+            filter_options::BOTH_ENROLLED_AND_NOT_ENROLLED_USERS_WITH_ATTEMPTS
+        );
 
         $this->add_action_buttons();
     }

@@ -32,7 +32,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_report_helper {
-
     /**
      * Returns data to build the answers distribution report for the given attempt.
      *
@@ -133,24 +132,35 @@ class attempt_report_helper {
             $answeredcorrectly = $quba->get_question_mark($slot) > 0;
             $answeredcorrectly ? $sumcorrect++ : $sumincorrect++;
 
-            $qdifficultylogits = catalgo::convert_linear_to_logit($difficulty, $adaptivequiz->lowestlevel,
-                $adaptivequiz->highestlevel);
+            $qdifficultylogits = catalgo::convert_linear_to_logit(
+                $difficulty,
+                $adaptivequiz->lowestlevel,
+                $adaptivequiz->highestlevel
+            );
 
             $difficultysum = $difficultysum + $qdifficultylogits;
             $numattempted++;
 
-            $abilitylogits = catalgo::estimate_measure($difficultysum, $numattempted, $sumcorrect,
-                $sumincorrect);
-            $abilityfraction = 1 / ( 1 + exp( (-1 * $abilitylogits) ) );
+            $abilitylogits = catalgo::estimate_measure(
+                $difficultysum,
+                $numattempted,
+                $sumcorrect,
+                $sumincorrect
+            );
+            $abilityfraction = 1 / ( 1 + exp((-1 * $abilitylogits)) );
             $ability = (($adaptivequiz->highestlevel - $adaptivequiz->lowestlevel) * $abilityfraction) + $adaptivequiz->lowestlevel;
 
             $stderrlogits = catalgo::estimate_standard_error($numattempted, $sumcorrect, $sumincorrect);
             $stderr = catalgo::convert_logit_to_percent($stderrlogits);
 
-            $errormax = min($adaptivequiz->highestlevel,
-                $ability + ($stderr * ($adaptivequiz->highestlevel - $adaptivequiz->lowestlevel)));
-            $errormin = max($adaptivequiz->lowestlevel,
-                $ability - ($stderr * ($adaptivequiz->highestlevel - $adaptivequiz->lowestlevel)));
+            $errormax = min(
+                $adaptivequiz->highestlevel,
+                $ability + ($stderr * ($adaptivequiz->highestlevel - $adaptivequiz->lowestlevel))
+            );
+            $errormin = max(
+                $adaptivequiz->lowestlevel,
+                $ability - ($stderr * ($adaptivequiz->highestlevel - $adaptivequiz->lowestlevel))
+            );
 
             $dataitem = new stdClass();
             $dataitem->targetdifficulty = $targetlevel;
@@ -161,7 +171,7 @@ class attempt_report_helper {
             $dataitem->standarderror = $stderr;
             $dataitem->answeredcorrectly = $answeredcorrectly;
 
-            $data[$i+1] = $dataitem;
+            $data[$i + 1] = $dataitem;
         }
 
         return $data;
@@ -188,13 +198,19 @@ class attempt_report_helper {
         $previousqtags = core_tag_tag::get_item_tags_array('core_question', 'question', $previousquestion->id);
         $previousdifficulty = adaptivequiz_get_difficulty_from_tags($previousqtags);
 
-        $difficultylogits = catalgo::convert_linear_to_logit($previousdifficulty, $adaptivequiz->lowestlevel,
-            $adaptivequiz->highestlevel);
+        $difficultylogits = catalgo::convert_linear_to_logit(
+            $previousdifficulty,
+            $adaptivequiz->lowestlevel,
+            $adaptivequiz->highestlevel
+        );
 
         $answeredcorrectly = $quba->get_question_mark($previousslot) > 0;
         if ($answeredcorrectly) {
-            $targetlevel = round(catalgo::map_logit_to_scale($difficultylogits + 2 / $numattempted,
-                $adaptivequiz->highestlevel, $adaptivequiz->lowestlevel));
+            $targetlevel = round(catalgo::map_logit_to_scale(
+                $difficultylogits + 2 / $numattempted,
+                $adaptivequiz->highestlevel,
+                $adaptivequiz->lowestlevel
+            ));
             if ($targetlevel == $previousdifficulty && $targetlevel < $adaptivequiz->highestlevel) {
                 $targetlevel++;
             }
@@ -202,8 +218,11 @@ class attempt_report_helper {
             return $targetlevel;
         }
 
-        $targetlevel = round(catalgo::map_logit_to_scale($difficultylogits - 2 / $numattempted,
-            $adaptivequiz->highestlevel, $adaptivequiz->lowestlevel));
+        $targetlevel = round(catalgo::map_logit_to_scale(
+            $difficultylogits - 2 / $numattempted,
+            $adaptivequiz->highestlevel,
+            $adaptivequiz->lowestlevel
+        ));
         if ($targetlevel == $previousdifficulty && $targetlevel > $adaptivequiz->lowestlevel) {
             $targetlevel--;
         }

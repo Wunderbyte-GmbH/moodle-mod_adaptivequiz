@@ -22,6 +22,12 @@
     The purpose of copying is to enable custom initialization of the chart, as not all the config options can be passed through
     the chart renderable objects. Thus, the js section is implemented as a block to allow overriding in specific charts templates.
     See core/chart for the required context.
+    Example context (json):
+    {
+        "uniqid": "68a1f0c2b3d1e",
+        "withtable": false,
+        "chartdata": "{}"
+    }
 }}
 <div class="chart-area" id="chart-area-{{uniqid}}">
     <div class="chart-image" role="presentation" aria-describedby="chart-table-data-{{uniqid}}"></div>

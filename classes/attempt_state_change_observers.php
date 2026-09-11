@@ -26,8 +26,15 @@ namespace mod_adaptivequiz;
 use completion_info;
 use core\event\base;
 
+/**
+ * Attempt state change observers.
+ */
 class attempt_state_change_observers {
-
+    /**
+     * Attempt completed.
+     *
+     * @param base $event Event.
+     */
     public static function attempt_completed(base $event): void {
         global $DB;
 

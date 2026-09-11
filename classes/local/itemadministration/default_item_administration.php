@@ -16,74 +16,41 @@
 
 namespace mod_adaptivequiz\local\itemadministration;
 
-use context_module;
 use mod_adaptivequiz\local\attempt;
-use question_usage_by_activity;
-use stdClass;
 
 /**
- * The class is responsible for administering an item (a question) during a CAT session.
+ * The item administration of the built-in adaptive algorithm.
+ *
+ * It holds no logic of its own: the built-in algorithm lives in attempt::start_attempt(), which
+ * picks the next question and records its slot. This class only puts that behind the same contract
+ * a CAT model implements, so the activity has exactly one way of asking for the next item.
  *
  * @package    mod_adaptivequiz
- * @copyright  2023 Vitaly Potenko <potenkov@gmail.com>
+ * @copyright  2026 onwards Ralf Erlebach
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class default_item_administration implements item_administration {
+    /** @var attempt $attempt The running attempt. */
+    private attempt $attempt;
 
     /**
-     * @var question_usage_by_activity $quba
-     */
-    private $quba;
-
-    /**
-     * @var attempt $attempt
-     */
-    private $attempt;
-
-    /**
-     * @var stdClass $adaptivequiz A record from {adaptivequiz}.
-     */
-    private $adaptivequiz;
-
-    /**
-     * The constructor.
+     * Constructor.
      *
-     * @param question_usage_by_activity $quba
-     * @param attempt $attempt
-     * @param stdClass $adaptivequiz
+     * @param attempt $attempt The running attempt.
      */
-    public function __construct(question_usage_by_activity $quba, attempt $attempt, stdClass $adaptivequiz) {
-        $this->quba = $quba;
+    public function __construct(attempt $attempt) {
         $this->attempt = $attempt;
-        $this->adaptivequiz = $adaptivequiz;
     }
 
     /**
-     * Assesses the ability to administer next question during the quiz.
+     * Lets the built-in algorithm pick the next question, or report why it stops.
      *
-     * @param int|null $previousquestionslot See the interface.
+     * @param int|null $previousquestionslot Slot of the question answered before, null at the start.
      * @return item_administration_evaluation
      */
-    public function evaluate_ability_to_administer_next_item(
-        ?int $previousquestionslot
-    ): item_administration_evaluation {
-        $nextdiff = $this->attempt->get_level();
-
-        $setlevel = ($nextdiff === 0) ? (int) $this->adaptivequiz->startinglevel : $nextdiff;
-        $this->attempt->set_level($setlevel);
-
-        $cm = get_coursemodule_from_instance('adaptivequiz', $this->adaptivequiz->id, 0, false, MUST_EXIST);
-        $context = context_module::instance($cm->id);
-
-        $this->attempt->set_question_slot_number(($previousquestionslot !== null) ? $previousquestionslot : 0);
-
-        $attemptstatus = $this->attempt->start_attempt($context);
-
-        // Check if attempt status is set to ready.
-        if (empty($attemptstatus)) {
-            $message = $this->attempt->get_status();
-
-            return item_administration_evaluation::with_stoppage_reason($message);
+    public function evaluate_ability_to_administer_next_item(?int $previousquestionslot): item_administration_evaluation {
+        if (empty($this->attempt->start_attempt())) {
+            return item_administration_evaluation::with_stoppage_reason($this->attempt->get_status());
         }
 
         return item_administration_evaluation::with_next_item(

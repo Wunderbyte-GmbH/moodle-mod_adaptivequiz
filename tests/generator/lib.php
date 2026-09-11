@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+use core\exception\coding_exception;
+use mod_adaptivequiz\attempt as read_attempt;
+use mod_adaptivequiz\item_bank;
+use mod_adaptivequiz\local\attempt as attempt_entity;
+
 /**
  * Generator for the module.
  *
@@ -23,7 +28,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_adaptivequiz_generator extends testing_module_generator {
-
     /**
      * Creates new module instance.
      *
@@ -35,38 +39,23 @@ class mod_adaptivequiz_generator extends testing_module_generator {
      * @param array|null $options
      * @return stdClass
      */
-    public function create_instance($record = null, array $options = null) {
+    public function create_instance($record = null, ?array $options = null) {
         global $CFG;
 
-        require_once($CFG->dirroot .'/mod/adaptivequiz/locallib.php');
+        require_once($CFG->dirroot . '/mod/adaptivequiz/locallib.php');
 
         $record = (object)(array)$record;
-
-        if (!isset($record->questionpool) && !isset($record->questionpoolnamed)) {
-            $context = context_course::instance($record->course);
-            $questioncat = question_get_top_category($context->id, $create = true);
-            $record->questionpool = [
-                $questioncat->id,
-            ];
-        }
-
-        // Named question pool takes precedence over the 'questionpool' setting.
-        if (isset($record->questionpoolnamed)) {
-            if (is_string($record->questionpoolnamed)) {
-                $record->questionpoolnamed = [$record->questionpoolnamed];
-            }
-
-            $record->questionpool = $this->get_question_category_id_list_by_names($record->questionpoolnamed);
-            unset($record->questionpoolnamed);
-        }
 
         $defaultsettings = [
             'introformat' => FORMAT_MOODLE,
             'attempts' => 0,
             'grademethod' => ADAPTIVEQUIZ_GRADEHIGHEST,
             'password' => '',
+            'attemptfeedbackenable' => 0,
             'attemptfeedback' => '',
             'attemptfeedbackformat' => FORMAT_MOODLE,
+            'showabilitymeasurefeedback' => 0,
+            'showabilitymeasuresummary' => 0,
             'attemptonlast' => 0,
             'highestlevel' => 111,
             'lowestlevel' => 1,
@@ -76,6 +65,7 @@ class mod_adaptivequiz_generator extends testing_module_generator {
             'startinglevel' => 11,
             'timecreated' => time(),
             'timemodified' => time(),
+            'debuginfoenable' => 0,
         ];
 
         foreach ($defaultsettings as $name => $value) {
@@ -88,16 +78,128 @@ class mod_adaptivequiz_generator extends testing_module_generator {
     }
 
     /**
-     * Fetches a list of id for the given names of question categories.
+     * Generates links between the given adaptive quiz instance and question banks.
      *
-     * @param string[] $names
-     * @return int[]
+     * Note, the question banks data passed is not validated.
+     *
+     * @param array $data 'adaptivequizid' and 'qbankid' are the required keys.
      */
-    private function get_question_category_id_list_by_names(array $names): array {
+    public function create_link_with_question_bank(array $data): void {
+        if (!array_key_exists('adaptivequizid', $data)) {
+            throw new coding_exception("Id of an 'adaptivequiz' instance is required when linking qbanks");
+        }
+
+        if (!array_key_exists('qbankid', $data)) {
+            throw new coding_exception("Id of a 'qbank' instance is required when linking qbanks");
+        }
+
+        item_bank::assign_qbanks_to_adaptivequiz($data['adaptivequizid'], [$data['qbankid']]);
+    }
+
+    /**
+     * Generates links between the given adaptive quiz instance and a single question category.
+     *
+     * Note, the passed data is not validated.
+     *
+     * @param array $data 'adaptivequizid' and 'qcategoryid' are the required keys.
+     */
+    public function create_link_with_question_category(array $data): void {
         global $DB;
 
-        [$namesql, $nameparams] = $DB->get_in_or_equal($names);
+        if (!array_key_exists('adaptivequizid', $data)) {
+            throw new coding_exception("Id of an 'adaptivequiz' instance is required when linking question categories");
+        }
 
-        return $DB->get_fieldset_select('question_categories', 'id', "name $namesql", $nameparams);
+        if (!array_key_exists('qcategoryid', $data)) {
+            throw new coding_exception("Id of a question category is required when linking question categories");
+        }
+
+        $DB->insert_record('adaptivequiz_question', [
+            'instance' => $data['adaptivequizid'],
+            'questioncategory' => $data['qcategoryid'],
+        ]);
+    }
+
+    /**
+     * Generates a 'fresh' attempt for user.
+     *
+     * Note, that this runs the entire logic of starting an attempt, etc. This means it's assumed that the adaptive quiz instance
+     * is set up with a proper questions pool containing a minimal number of actual questions, etc.
+     *
+     * @param int $userid
+     * @param int $adaptivequizid
+     * @param context_module $context
+     */
+    public function create_in_progress_attempt(int $userid, int $adaptivequizid, context_module $context): read_attempt {
+        global $DB;
+
+        $adaptivequiz = $DB->get_record('adaptivequiz', ['id' => $adaptivequizid], '*', MUST_EXIST);
+
+        $adaptivequizforattempt = clone($adaptivequiz);
+        $adaptivequizforattempt->context = $context;
+
+        $attempt = new attempt_entity($adaptivequizforattempt, $userid);
+        $attempt->set_level($adaptivequiz->startinglevel);
+        $attempt->start_attempt();
+
+        $uniqueid = $attempt->get_quba()->get_id();
+
+        return read_attempt::get_record(['uniqueid' => $uniqueid], MUST_EXIST);
+    }
+
+    /**
+     * Generates a completed attempt for user.
+     *
+     * The note from {@see self::create_in_progress_attempt()} is applicable here as well.
+     *
+     * @param int $userid
+     * @param int $adaptivequizid
+     * @param context_module $context
+     * @param array $attemptdata Raw values for the following fields can be passed: 'standarderror', 'measure'.
+     * @param string $stoppagereason
+     */
+    public function create_completed_attempt(
+        int $userid,
+        int $adaptivequizid,
+        context_module $context,
+        array $attemptdata,
+        string $stoppagereason
+    ): read_attempt {
+        global $DB;
+
+        $adaptivequiz = $DB->get_record('adaptivequiz', ['id' => $adaptivequizid], '*', MUST_EXIST);
+
+        $adaptivequizforattempt = clone($adaptivequiz);
+        $adaptivequizforattempt->context = $context;
+
+        $attempt = new attempt_entity($adaptivequizforattempt, $userid);
+        $attempt->set_level($adaptivequiz->startinglevel);
+        $attempt->start_attempt();
+
+        $uniqueid = $attempt->get_quba()->get_id();
+
+        $standarderror = array_key_exists('standarderror', $attemptdata) ? $attemptdata['standarderror'] : 0.0;
+
+        if (array_key_exists('measure', $attemptdata)) {
+            adaptivequiz_update_attempt_data(
+                $uniqueid,
+                $adaptivequizid,
+                $userid,
+                $difflogit = 0,
+                $standarderror,
+                $attemptdata['measure']
+            );
+        }
+
+        adaptivequiz_complete_attempt(
+            uniqueid: $uniqueid,
+            adaptivequiz: $adaptivequiz,
+            context: $context,
+            userid: $userid,
+            standarderror: $standarderror,
+            statusmessage: $stoppagereason
+        );
+
+        return read_attempt::get_record(['uniqueid' => $uniqueid], MUST_EXIST);
     }
 }

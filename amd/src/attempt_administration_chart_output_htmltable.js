@@ -24,7 +24,7 @@ define([
     'jquery',
     'core/chart_output_htmltable',
     'mod_adaptivequiz/attempt_administration_chart_dataset_config'
-], function (
+], function(
     $,
     OutputTable,
     DatasetConfig

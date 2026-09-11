@@ -32,7 +32,6 @@ use templatable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_administration_report implements renderable, templatable {
-
     /**
      * @var int $attemptid
      */
@@ -66,17 +65,22 @@ class attempt_administration_report implements renderable, templatable {
         $yaxis->set_label(get_string('attemptquestion_ability', 'adaptivequiz'));
         $yaxis->set_stepsize(1);
 
-        $targetdiffseries = new chart_series(get_string('reportattemptadmcharttargetdifflabel', 'adaptivequiz'),
-            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->targetdifficulty, $data)));
+        $targetdiffseries = new chart_series(
+            get_string('reportattemptadmcharttargetdifflabel', 'adaptivequiz'),
+            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->targetdifficulty, $data))
+        );
         $targetdiffseries->set_color('#a1caf1');
         $chart->add_series($targetdiffseries);
 
-        $admdiffseries = new chart_series(get_string('reportattemptadmchartadmdifflabel', 'adaptivequiz'),
-            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->administereddifficulty, $data)));
+        $admdiffseries = new chart_series(
+            get_string('reportattemptadmchartadmdifflabel', 'adaptivequiz'),
+            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->administereddifficulty, $data))
+        );
         $admdiffseries->set_color('#875692');
         $chart->add_series($admdiffseries);
 
-        $chart->add_series(new chart_series(get_string('attemptquestion_rightwrong', 'adaptivequiz'),
+        $chart->add_series(new chart_series(
+            get_string('attemptquestion_rightwrong', 'adaptivequiz'),
             array_values(array_map(
                 fn (stdClass $dataitem): string => $dataitem->answeredcorrectly
                     ? get_string('reportattemptadmanswerright', 'adaptivequiz')
@@ -85,14 +89,17 @@ class attempt_administration_report implements renderable, templatable {
             ))
         ));
 
-        $abilityseries = new chart_series(get_string('attemptquestion_ability', 'adaptivequiz'),
-            array_values(array_map(fn (stdClass $dataitem): float => round($dataitem->abilitymeasure, 2), $data)));
+        $abilityseries = new chart_series(
+            get_string('attemptquestion_ability', 'adaptivequiz'),
+            array_values(array_map(fn (stdClass $dataitem): float => round($dataitem->abilitymeasure, 2), $data))
+        );
         $abilityseries->set_color('#7f180d');
         $chart->add_series($abilityseries);
 
         // We don't care about the label here, as it's supposed to be not displayed.
         $standarderrormaxseries = new chart_series('standarderrormax', array_values(array_map(
-            fn (stdClass $dataitem): float => round($dataitem->standarderrormax, 2), $data
+            fn (stdClass $dataitem): float => round($dataitem->standarderrormax, 2),
+            $data
         )));
         $standarderrormaxseries->set_fill('-1');
         $standarderrormaxseries->set_color('rgba(255, 26, 104, 0.2)');
@@ -100,15 +107,18 @@ class attempt_administration_report implements renderable, templatable {
 
         // Same for the label as above.
         $standarderrorminseries = new chart_series('standarderrormin', array_values(array_map(
-            fn (stdClass $dataitem): float => round($dataitem->standarderrormin, 2), $data
+            fn (stdClass $dataitem): float => round($dataitem->standarderrormin, 2),
+            $data
         )));
         $standarderrorminseries->set_fill('-2');
         $standarderrorminseries->set_color('rgba(255, 26, 104, 0.2)');
         $chart->add_series($standarderrorminseries);
 
-        $chart->add_series(new chart_series(get_string('graphlegend_error', 'adaptivequiz'),
+        $chart->add_series(new chart_series(
+            get_string('graphlegend_error', 'adaptivequiz'),
             array_values(array_map(
-                fn (stdClass $dataitem): string => '+/- ' . format_float($dataitem->standarderror * 100, 2)  . '%', $data
+                fn (stdClass $dataitem): string => '+/- ' . format_float($dataitem->standarderror * 100, 2)  . '%',
+                $data
             ))
         ));
 

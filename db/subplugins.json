@@ -1,4 +1,7 @@
 {
+  "subplugintypes": {
+    "adaptivequizcatmodel": "catmodel"
+  },
   "plugintypes": {
     "adaptivequizcatmodel": "mod\/adaptivequiz\/catmodel"
   }

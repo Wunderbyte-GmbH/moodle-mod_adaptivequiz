@@ -1,0 +1,191 @@
+name: CI
+
+# Zielversion ist Moodle 5.3 (LTS). 5.1 und 5.2 laufen als Absicherung mit,
+# 5.3 bis zur Verzweigung von MOODLE_503_STABLE gegen main.
+#
+# PHP: 8.3 ist die von Moodle 5.3 geforderte Mindestversion, 8.4 laeuft auf allen
+# Zweigen mit. PHP 8.5 laesst sich derzeit nicht fahren - Moodles composer.lock
+# haelt ezyang/htmlpurifier auf einer Fassung, die nur bis PHP 8.4 zugelassen ist,
+# `composer install` bricht deshalb im Moodle-Baum ab. Bis der Kern nachzieht,
+# prueft der Job "PHP 8.5" nur Syntax und Code-Style unseres eigenen Codes.
+#
+# Datenbanken: Moodle 5.3 verlangt PostgreSQL >= 17 bzw. MariaDB >= 11.4.
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.moodle-branch }} · PHP ${{ matrix.php }} · ${{ matrix.database }}
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: 'postgres'
+          POSTGRES_HOST_AUTH_METHOD: 'trust'
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready" --health-interval=10s
+          --health-timeout=5s --health-retries=3
+
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MYSQL_USER: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
+          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=3
+
+    strategy:
+      fail-fast: false
+      matrix:
+        moodle-branch: ['MOODLE_501_STABLE', 'MOODLE_502_STABLE', 'main']
+        php: ['8.3']
+        database: ['pgsql', 'mariadb']
+        include:
+          # PHP 8.4 auf jedem Zweig, aber nur gegen PostgreSQL - die zweite Engine
+          # deckt 8.3 bereits ab.
+          - moodle-branch: 'MOODLE_501_STABLE'
+            php: '8.4'
+            database: 'pgsql'
+          - moodle-branch: 'MOODLE_502_STABLE'
+            php: '8.4'
+            database: 'pgsql'
+          - moodle-branch: 'main'
+            php: '8.4'
+            database: 'pgsql'
+
+    steps:
+      - name: Plugin auschecken
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - name: PHP einrichten
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pgsql, mysqli, zip, gd, xmlrpc, soap, intl
+          ini-values: max_input_vars=5000
+          coverage: none
+
+      - name: moodle-plugin-ci installieren
+        run: |
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
+          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
+          echo $(cd ci/vendor/bin; pwd) >> $GITHUB_PATH
+          sudo locale-gen en_AU.UTF-8
+          echo "NVM_DIR=$HOME/.nvm" >> $GITHUB_ENV
+
+      # Der Installer legt das Plugin im Moodle-Baum ab und schreibt den Zielpfad als
+      # PLUGIN_DIR in ci/.env - nicht nach $GITHUB_ENV. Im Shell-Kontext des Workflows ist
+      # die Variable also leer; moodle-plugin-ci liest sie beim Start selbst und setzt sie
+      # als Vorgabe des Pluginarguments ein. Deshalb bekommen die Pruefschritte gar kein
+      # Argument: nur so treffen sie den installierten Pfad, den der Mustache-Pruefer und
+      # Grunt zwingend brauchen.
+      - name: Moodle installieren
+        run: moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1
+        env:
+          DB: ${{ matrix.database }}
+          MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+
+      - name: PHP-Syntax
+        if: ${{ always() }}
+        run: moodle-plugin-ci phplint
+
+      # PSR1.Classes.ClassDeclaration ist ausgenommen: mod_adaptivequiz_csv_renderer ist ein
+      # Renderer-Subtyp und muss laut Moodles renderer_factory in renderer.php stehen.
+      - name: Code-Style
+        if: ${{ always() }}
+        run: moodle-plugin-ci phpcs --max-warnings 0 --exclude=PSR1.Classes.ClassDeclaration
+
+      - name: PHPDoc
+        if: ${{ always() }}
+        run: moodle-plugin-ci phpdoc --max-warnings 0
+
+      - name: Mustache-Templates
+        if: ${{ always() }}
+        run: moodle-plugin-ci mustache
+
+      - name: Grunt
+        if: ${{ always() }}
+        run: moodle-plugin-ci grunt --max-lint-warnings 0
+
+      - name: PHPUnit
+        if: ${{ always() }}
+        run: moodle-plugin-ci phpunit --fail-on-warning
+
+      # Behat ist scharf: der Lauf vom 9. September war auf allen Zweigen und beiden
+      # Datenbanken gruen, 33 Szenarien mit 1569 Schritten.
+      - name: Behat
+        if: ${{ always() }}
+        run: moodle-plugin-ci behat --profile chrome
+
+  php85:
+    name: PHP 8.5 · Syntax und Code-Style
+    runs-on: ubuntu-latest
+
+    # Moodle 5.x laesst sich unter PHP 8.5 nicht installieren: composer.lock haelt
+    # ezyang/htmlpurifier auf einer Fassung, die nur bis 8.4 zugelassen ist. Was sich
+    # ohne Moodle-Baum pruefen laesst, wird hier trotzdem gegen 8.5 gefahren - damit
+    # unser eigener Code nicht unbemerkt auf 8.5 zerfaellt.
+    steps:
+      - name: Plugin auschecken
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - name: PHP einrichten
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          ini-values: max_input_vars=5000
+          coverage: none
+
+      - name: moodle-plugin-ci installieren
+        run: |
+          composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
+          echo $(cd ci/bin; pwd) >> $GITHUB_PATH
+          echo $(cd ci/vendor/bin; pwd) >> $GITHUB_PATH
+
+      - name: PHP-Syntax
+        run: moodle-plugin-ci phplint ./plugin
+
+      - name: Code-Style
+        run: moodle-plugin-ci phpcs --max-warnings 0 --exclude=PSR1.Classes.ClassDeclaration ./plugin
+
+  architecture:
+    name: Architekturgrenze zu local_catquiz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Plugin auschecken
+        uses: actions/checkout@v4
+
+      # Der Host darf keine CATquiz-Fachlichkeit kennen (Issue #10 §13). Das
+      # Test-Catmodel unter catmodel/testcatmodel ist neutral, echte Catmodels
+      # liegen in eigenen Repositories und sind hier nicht eingecheckt.
+      # Geprueft wird ausfuehrbarer Code, nicht die Dokumentation - dort duerfen
+      # die Begriffe vorkommen, etwa in der Portierungsmatrix.
+      - name: Keine CATquiz-Referenzen im Host
+        run: |
+          if grep -rInE 'local_catquiz|catquiz_handler|catscale|adaptivequizcatmodel_catquiz' \
+               --include='*.php' --include='*.js' --include='*.mustache' \
+               --include='*.json' --include='*.xml' --include='*.feature' \
+               --exclude-dir=.git --exclude-dir=doc --exclude-dir=tools \
+               --exclude-dir=catquiz . ; then
+            echo "::error::CATquiz-Referenz im Host gefunden - siehe Issue #10 §13."
+            exit 1
+          fi
+          echo "Keine CATquiz-Referenzen im Host."

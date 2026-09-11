@@ -24,6 +24,9 @@
 
 namespace mod_adaptivequiz\local\questionanalysis\statistics;
 
+/**
+ * Discrimination statistic result.
+ */
 class discrimination_statistic_result implements question_statistic_result {
     /** @var float $discrimination  */
     protected $discrimination = null;
@@ -34,7 +37,7 @@ class discrimination_statistic_result implements question_statistic_result {
      * @param float $discrimination
      * @return void
      */
-    public function __construct ($discrimination) {
+    public function __construct($discrimination) {
         $this->discrimination = $discrimination;
     }
 
@@ -43,7 +46,7 @@ class discrimination_statistic_result implements question_statistic_result {
      *
      * @return mixed string or numeric
      */
-    public function sortable () {
+    public function sortable() {
         if (is_null($this->discrimination)) {
             return -2;
         } else {
@@ -54,10 +57,9 @@ class discrimination_statistic_result implements question_statistic_result {
     /**
      * A printable version of the result.
      *
-     * @param numeric $result
      * @return mixed string or numeric
      */
-    public function printable () {
+    public function printable() {
         if (is_null($this->discrimination)) {
             return 'n/a';
         } else {

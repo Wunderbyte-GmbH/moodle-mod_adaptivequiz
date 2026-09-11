@@ -26,7 +26,6 @@ namespace mod_adaptivequiz\local\report\users_attempts\user_preferences;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class user_preferences_repository {
-
     /**
      * @var string Name of the preference.
      */

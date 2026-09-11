@@ -24,6 +24,9 @@
 
 namespace mod_adaptivequiz\local\questionanalysis\statistics;
 
+/**
+ * Times used statistic result.
+ */
 class times_used_statistic_result implements question_statistic_result {
     /** @var int $count  */
     protected $count = null;
@@ -34,7 +37,7 @@ class times_used_statistic_result implements question_statistic_result {
      * @param int $count
      * @return void
      */
-    public function __construct ($count) {
+    public function __construct($count) {
         $this->count = $count;
     }
 
@@ -43,17 +46,16 @@ class times_used_statistic_result implements question_statistic_result {
      *
      * @return mixed string or numeric
      */
-    public function sortable () {
+    public function sortable() {
         return $this->count;
     }
 
     /**
      * A printable version of the result.
      *
-     * @param numeric $result
      * @return mixed string or numeric
      */
-    public function printable () {
+    public function printable() {
         return $this->count;
     }
 }

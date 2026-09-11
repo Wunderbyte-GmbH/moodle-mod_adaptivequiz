@@ -27,17 +27,17 @@ defined('MOODLE_INTERNAL') || die();
 
 global $DB;
 
-$logs = array(
-    array('module' => 'adaptivequiz', 'action' => 'view', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'add', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'update', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'report', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'submit', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'review', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'start attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'close attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'start attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'continue attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-    array('module' => 'adaptivequiz', 'action' => 'start attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'),
-);
+$logs = [
+    ['module' => 'adaptivequiz', 'action' => 'view', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'add', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'update', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'report', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'submit', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'review', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'start attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'close attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'start attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'continue attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+    ['module' => 'adaptivequiz', 'action' => 'start attempt', 'mtable' => 'adaptivequiz', 'field' => 'name'],
+];

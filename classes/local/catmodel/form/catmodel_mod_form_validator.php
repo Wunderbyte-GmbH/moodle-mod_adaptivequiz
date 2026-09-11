@@ -24,8 +24,10 @@
 
 namespace mod_adaptivequiz\local\catmodel\form;
 
+/**
+ * Catmodel mod form validator.
+ */
 interface catmodel_mod_form_validator {
-
     /**
      * Adds validation to mod_form which may be required for the fields added by the custom CAT model.
      *

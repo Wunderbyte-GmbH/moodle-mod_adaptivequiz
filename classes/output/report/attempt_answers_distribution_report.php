@@ -32,7 +32,6 @@ use templatable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class attempt_answers_distribution_report implements renderable, templatable {
-
     /**
      * @var int $attemptid
      */
@@ -80,11 +79,15 @@ class attempt_answers_distribution_report implements renderable, templatable {
         $yaxis->set_label(get_string('reportanswersdistributionchartyaxislabel', 'adaptivequiz'));
         $yaxis->set_stepsize(1);
 
-        $chart->add_series(new chart_series(get_string('reportanswersdistributionchartnumrightlabel', 'adaptivequiz'),
-            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->numcorrect, $data))));
+        $chart->add_series(new chart_series(
+            get_string('reportanswersdistributionchartnumrightlabel', 'adaptivequiz'),
+            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->numcorrect, $data))
+        ));
 
-        $chart->add_series(new chart_series(get_string('reportanswersdistributionchartnumwronglabel', 'adaptivequiz'),
-            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->numwrong, $data))));
+        $chart->add_series(new chart_series(
+            get_string('reportanswersdistributionchartnumwronglabel', 'adaptivequiz'),
+            array_values(array_map(fn (stdClass $dataitem): int => $dataitem->numwrong, $data))
+        ));
 
         return [
             'showchartstacked' => $showchartstacked,

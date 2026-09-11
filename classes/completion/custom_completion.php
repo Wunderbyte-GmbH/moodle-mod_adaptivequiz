@@ -26,10 +26,13 @@ namespace mod_adaptivequiz\completion;
 use core_completion\activity_custom_completion;
 use mod_adaptivequiz\local\attempt;
 
+/**
+ * Custom completion.
+ */
 class custom_completion extends activity_custom_completion {
-
     /**
-     * @inheritDoc
+     * Returns state.
+     * @param string $rule Rule.
      */
     public function get_state(string $rule): int {
         $this->validate_rule($rule);
@@ -40,21 +43,21 @@ class custom_completion extends activity_custom_completion {
     }
 
     /**
-     * @inheritDoc
+     * Returns defined custom rules.
      */
     public static function get_defined_custom_rules(): array {
         return ['completionattemptcompleted'];
     }
 
     /**
-     * @inheritDoc
+     * Returns custom rule descriptions.
      */
     public function get_custom_rule_descriptions(): array {
         return ['completionattemptcompleted' => get_string('completionattemptcompletedcminfo', 'adaptivequiz')];
     }
 
     /**
-     * @inheritDoc
+     * Returns sort order.
      */
     public function get_sort_order(): array {
         return ['completionview', 'completionusegrade', 'completionattemptcompleted'];

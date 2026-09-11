@@ -14,59 +14,61 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_adaptivequiz\output;
+
+use help_icon;
+use mod_adaptivequiz\external\ability_measure_exporter;
+use renderable;
+use renderer_base;
+use stdClass;
+use templatable;
+
 /**
  * A class to display a table with user's own attempts on the activity's view page.
  *
+ * @package    mod_adaptivequiz
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-namespace mod_adaptivequiz\output;
-
-use renderable;
-use stdClass;
-
-final class ability_measure implements renderable {
+class ability_measure implements renderable, templatable {
+    /**
+     * @var stdClass $adaptivequiz
+     */
+    private $adaptivequiz;
 
     /**
-     * @var float $abilitymeasure
+     * @var stdClass $attempt
      */
-    public $measurevalue;
-    /**
-     * @var int $lowestquestiondifficulty
-     */
-    public $lowestquestiondifficulty;
-    /**
-     * @var int $highestquestiondifficulty
-     */
-    public $highestquestiondifficulty;
+    private $attempt;
 
     /**
-     * A convenience method to convert the object to what {@link mod_adaptivequiz_renderer::format_measure()} expects
-     * to produce a formatted ability measure.
+     * The constructor.
+     *
+     * @param stdClass $adaptivequiz
+     * @param stdClass $attempt
      */
-    public function as_object_to_format(): stdClass {
-        $return = new stdClass();
-        $return->measure = $this->measurevalue;
-        $return->lowestlevel = $this->lowestquestiondifficulty;
-        $return->highestlevel = $this->highestquestiondifficulty;
-
-        return $return;
+    public function __construct(stdClass $adaptivequiz, stdClass $attempt) {
+        $this->adaptivequiz = $adaptivequiz;
+        $this->attempt = $attempt;
     }
 
     /**
-     * A named constructor to set up the object and increase code readability.
+     * Implements the interface.
      *
-     * @param stdClass $adaptivequiz A record from {adaptivequiz}. lowestlevel and highestlevel are the expected fields.
-     * @param float $measurevalue
-     * @return self
+     * @param renderer_base $output
+     * @return \stdClass|array
      */
-    public static function of_attempt_on_adaptive_quiz(stdClass $adaptivequiz, float $measurevalue): self {
-        $return = new self();
-        $return->lowestquestiondifficulty = !empty($adaptivequiz->lowestlevel) ? $adaptivequiz->lowestlevel : 0;
-        $return->highestquestiondifficulty = !empty($adaptivequiz->highestlevel) ? $adaptivequiz->highestlevel : 0;
-        $return->measurevalue = $measurevalue;
+    public function export_for_template(renderer_base $output) {
+        $abilitymeasure = (array) (new ability_measure_exporter([
+            'highestlevel' => $this->adaptivequiz->highestlevel,
+            'lowestlevel' => $this->adaptivequiz->lowestlevel,
+        ], [
+            'attempt' => $this->attempt,
+        ]))
+            ->export($output);
 
-        return $return;
+        return array_merge($abilitymeasure, [
+            'helpicon' => $output->render(new help_icon('abilityestimated', 'adaptivequiz')),
+        ]);
     }
 }

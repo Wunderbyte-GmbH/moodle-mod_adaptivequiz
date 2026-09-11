@@ -35,7 +35,7 @@ class answers_statistic implements question_statistic {
      *
      * @return string
      */
-    public function get_display_name () {
+    public function get_display_name() {
         return get_string('answers_display_name', 'adaptivequiz');
     }
 
@@ -54,9 +54,9 @@ class answers_statistic implements question_statistic {
         array_multisort($sortkeys, SORT_NUMERIC, SORT_DESC, $results);
 
         // Sort the results into three arrays based on how far above or below the question-level the users are.
-        $high = array();
-        $mid = array();
-        $low = array();
+        $high = [];
+        $mid = [];
+        $low = [];
         foreach ($results as $result) {
             $ceiling = $result->score->measured_ability_in_logits() + $result->score->standard_error_in_logits();
             $floor = $result->score->measured_ability_in_logits() - $result->score->standard_error_in_logits();
@@ -84,16 +84,19 @@ class answers_statistic implements question_statistic {
         $headings = ob_get_clean();
 
         ob_start();
-        print html_writer::start_tag('table', array('class' => 'adpq_answers_table'));
+        print html_writer::start_tag('table', ['class' => 'adpq_answers_table']);
 
         print html_writer::start_tag('thead');
         print html_writer::start_tag('tr');
-        print html_writer::tag('th', get_string('highlevelusers', 'adaptivequiz').':',
-            array('colspan' => '5', 'class' => 'section'));
+        print html_writer::tag(
+            'th',
+            get_string('highlevelusers', 'adaptivequiz') . ':',
+            ['colspan' => '5', 'class' => 'section']
+        );
         print $headings;
         print html_writer::end_tag('thead');
 
-        print html_writer::start_tag('tbody', array('class' => 'adpq_highlevel'));
+        print html_writer::start_tag('tbody', ['class' => 'adpq_highlevel']);
         if (count($high)) {
             foreach ($high as $result) {
                 $this->print_user_result($result);
@@ -105,12 +108,15 @@ class answers_statistic implements question_statistic {
 
         print html_writer::start_tag('thead');
         print html_writer::start_tag('tr');
-        print html_writer::tag('th', get_string('midlevelusers', 'adaptivequiz').':',
-            array('colspan' => '5', 'class' => 'section'));
+        print html_writer::tag(
+            'th',
+            get_string('midlevelusers', 'adaptivequiz') . ':',
+            ['colspan' => '5', 'class' => 'section']
+        );
         print $headings;
         print html_writer::end_tag('thead');
 
-        print html_writer::start_tag('tbody', array('class' => 'adpq_midlevel'));
+        print html_writer::start_tag('tbody', ['class' => 'adpq_midlevel']);
         if (count($mid)) {
             foreach ($mid as $result) {
                 $this->print_user_result($result);
@@ -122,12 +128,15 @@ class answers_statistic implements question_statistic {
 
         print html_writer::start_tag('thead');
         print html_writer::start_tag('tr');
-        print html_writer::tag('th', get_string('lowlevelusers', 'adaptivequiz').':',
-            array('colspan' => '5', 'class' => 'section'));
+        print html_writer::tag(
+            'th',
+            get_string('lowlevelusers', 'adaptivequiz') . ':',
+            ['colspan' => '5', 'class' => 'section']
+        );
         print $headings;
         print html_writer::end_tag('thead');
 
-        print html_writer::start_tag('tbody', array('class' => 'adpq_lowlevel'));
+        print html_writer::start_tag('tbody', ['class' => 'adpq_lowlevel']);
         if (count($low)) {
             foreach ($low as $result) {
                 $this->print_user_result($result);
@@ -156,7 +165,7 @@ class answers_statistic implements question_statistic {
         $url = new moodle_url('/mod/adaptivequiz/reviewattempt.php', ['attempt' => $result->attemptid]);
         print html_writer::start_tag('tr', ['class' => $class]);
         print html_writer::tag('td', round($result->score->measured_ability_in_scale(), 2));
-        print html_writer::tag('td', $result->user->firstname." ".$result->user->lastname);
+        print html_writer::tag('td', $result->user->firstname . " " . $result->user->lastname);
         print html_writer::tag('td', (($result->correct) ? "correct" : "incorrect"));
         print html_writer::tag('td', $result->answer);
         print html_writer::tag('td', html_writer::link($url, get_string('reviewattempt', 'adaptivequiz')));
@@ -166,11 +175,9 @@ class answers_statistic implements question_statistic {
     /**
      * Print out an empty user-result row.
      *
-     * @param question_analyser $analyser
-     * @param stdClass $result
      * @return void
      */
-    public function print_empty_user_result () {
+    public function print_empty_user_result() {
         print html_writer::start_tag('tr');
         print html_writer::tag('td', '');
         print html_writer::tag('td', '');

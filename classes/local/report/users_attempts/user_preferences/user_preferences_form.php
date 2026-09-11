@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Form to edit the user preferences of the users attempts report.
+ *
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,34 +29,55 @@ require_once($CFG->libdir . '/formslib.php');
 
 use moodleform;
 
+/**
+ * User preferences form.
+ */
 class user_preferences_form extends moodleform {
-
     /**
      * Overrides the parent method to remove mandatory closing of fieldset before the submit button.
      * Ignores the arguments, as it contains its own logic to display the button.
-     *
-     * @inheritDoc
+     * @param mixed $cancel Cancel.
+     * @param mixed $submitlabel Submitlabel.
      */
-    public function add_action_buttons($cancel = true, $submitlabel=null) {
+    public function add_action_buttons($cancel = true, $submitlabel = null) {
         $form =& $this->_form;
         $form->addElement('submit', 'prefssubmit', get_string('reportattemptsprefsformsubmit', 'adaptivequiz'));
     }
 
+    /**
+     * Definition.
+     */
     protected function definition() {
         $form = $this->_form;
 
         $form->addElement('header', 'prefsheader', get_string('reportattemptsprefsformheader', 'adaptivequiz'));
 
-        $form->addElement('select', 'perpage', get_string('reportattemptsusersperpage', 'adaptivequiz'),
-            array_combine(user_preferences::PER_PAGE_OPTIONS, user_preferences::PER_PAGE_OPTIONS));
+        $form->addElement(
+            'select',
+            'perpage',
+            get_string('reportattemptsusersperpage', 'adaptivequiz'),
+            array_combine(user_preferences::PER_PAGE_OPTIONS, user_preferences::PER_PAGE_OPTIONS)
+        );
         $form->setDefault('perpage', user_preferences::PER_PAGE_DEFAULT);
 
-        $form->addElement('advcheckbox', 'showinitialsbar',
-            get_string('reportattemptsshowinitialbars', 'adaptivequiz'), '&nbsp;', null, [0, 1]);
+        $form->addElement(
+            'advcheckbox',
+            'showinitialsbar',
+            get_string('reportattemptsshowinitialbars', 'adaptivequiz'),
+            '&nbsp;',
+            null,
+            [0, 1]
+        );
         $form->setDefault('showinitialsbar', user_preferences::SHOW_INITIALS_BAR_DEFAULT);
 
-        $form->addElement('advcheckbox', 'persistentfilter',
-            get_string('reportattemptspersistentfilter', 'adaptivequiz'), '&nbsp;', null, [0, 1]);
+        $form->addElement(
+            'advcheckbox',
+            'persistentfilter',
+            get_string('reportattemptspersistentfilter', 'adaptivequiz'),
+            '&nbsp;',
+            null,
+            [0, 1]
+        );
         $form->setDefault('persistentfilter', user_preferences::PERSISTENT_FILTER_DEFAULT);
         $form->addHelpButton('persistentfilter', 'reportattemptspersistentfilter', 'adaptivequiz');
 

@@ -26,13 +26,16 @@ namespace mod_adaptivequiz\local\questionanalysis\statistics;
 
 use mod_adaptivequiz\local\questionanalysis\question_analyser;
 
+/**
+ * Discrimination statistic.
+ */
 class discrimination_statistic implements question_statistic {
     /**
      * Answer a display-name for this statistic.
      *
      * @return string
      */
-    public function get_display_name () {
+    public function get_display_name() {
         return get_string('discrimination_display_name', 'adaptivequiz');
     }
 
@@ -42,7 +45,7 @@ class discrimination_statistic implements question_statistic {
      * @param question_analyser $analyser
      * @return question_statistic_result
      */
-    public function calculate (question_analyser $analyser) {
+    public function calculate(question_analyser $analyser) {
         // Discrimination is generally defined as comparing the results of two sub-groups,
         // the top 27% of test-takers (the upper group) and the bottom 27% of test-takers (the lower group),
         // assuming a normal distribution of scores).

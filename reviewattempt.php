@@ -56,8 +56,10 @@ $PAGE->set_title($title);
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
 $PAGE->navbar->add(get_string('reports'));
-$PAGE->navbar->add(get_string('reportuserattemptstitleshort', 'adaptivequiz', fullname($user)),
-    new moodle_url('/mod/adaptivequiz/viewattemptreport.php', ['userid' => $user->id, 'cmid' => $cm->id]));
+$PAGE->navbar->add(
+    get_string('reportuserattemptstitleshort', 'adaptivequiz', fullname($user)),
+    new moodle_url('/mod/adaptivequiz/viewattemptreport.php', ['userid' => $user->id, 'cmid' => $cm->id])
+);
 $PAGE->navbar->add(get_string('reviewattempt', 'adaptivequiz'));
 
 $renderer = $PAGE->get_renderer('mod_adaptivequiz');

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/adaptivequiz/db" VERSION="20240821" COMMENT="XMLDB file for Moodle mod/adaptivequiz"
+<XMLDB PATH="mod/adaptivequiz/db" VERSION="20260301" COMMENT="XMLDB file for Moodle mod/adaptivequiz"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -16,7 +16,9 @@
         <FIELD NAME="browsersecurity" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Restriciton on the browser the student must use. E.g. securewindow."/>
         <FIELD NAME="attemptfeedback" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Feedback given to students when their attempt has been completed."/>
         <FIELD NAME="attemptfeedbackformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Format of attempt feedback"/>
-        <FIELD NAME="showabilitymeasure" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the ability measure should be presented to a test-taker in attempt summary."/>
+        <FIELD NAME="attemptfeedbackenable" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the attempt feedback text is shown."/>
+        <FIELD NAME="showabilitymeasurefeedback" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the ability measure should be presented to a test-taker once the attempt is finished."/>
+        <FIELD NAME="showabilitymeasuresummary" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the ability measure is displayed in user's attempts summary."/>
         <FIELD NAME="showattemptprogress" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether quiz progress info should be presented to a test-taker during attempting a quiz."/>
         <FIELD NAME="highestlevel" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The highest difficulty level the adaptive quiz will go to."/>
         <FIELD NAME="lowestlevel" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The lowest difficulty level the adaptive quiz will go to."/>
@@ -28,7 +30,8 @@
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Time created timestamp"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Time modified timesampt"/>
         <FIELD NAME="completionattemptcompleted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Stores whether a custom completion rule based on whether a user has a completed attempt enabled."/>
-        <FIELD NAME="catmodel" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Sub-plugin with custom CAT model to use"/>
+        <FIELD NAME="debuginfoenable" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="catmodel" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Name of the CAT model subplugin driving this instance, empty for the built-in algorithm."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -47,6 +50,25 @@
         <KEY NAME="questioncategory_foreign" TYPE="foreign" FIELDS="questioncategory" REFTABLE="question_categories" REFFIELDS="id" COMMENT="Foreign key to questino_categories table."/>
       </KEYS>
     </TABLE>
+
+        <TABLE NAME="adaptivequiz_qbank" COMMENT="Stores links between activity instances and Moodle question banks.">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="adaptivequizid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key for adaptive quiz instance."/>
+                <FIELD NAME="qbankid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key for question bank instance."/>
+                <FIELD NAME="qbankcontextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key for question bank context."/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="adaptivequizid" TYPE="foreign" FIELDS="adaptivequizid" REFTABLE="adaptivequiz" REFFIELDS="id"/>
+                <KEY NAME="qbankid" TYPE="foreign" FIELDS="qbankid" REFTABLE="qbank" REFFIELDS="id"/>
+                <KEY NAME="qbankcontextid" TYPE="foreign" FIELDS="qbankcontextid" REFTABLE="context" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="adaptivequiz-qbank" UNIQUE="true" FIELDS="adaptivequizid, qbankid, qbankcontextid"/>
+            </INDEXES>
+        </TABLE>
+
     <TABLE NAME="adaptivequiz_attempt" COMMENT="Logging of attempts">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="instance"/>
@@ -61,6 +83,7 @@
         <FIELD NAME="measure" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0.0" SEQUENCE="false" DECIMALS="5" COMMENT="The attempt ability measure in logits"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Time created timestamp"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Time modified timestamp"/>
+        <FIELD NAME="timefinished" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The time the attempt was completed, set once and never changed again."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="instance_foreign"/>

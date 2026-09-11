@@ -16,6 +16,10 @@
 
 namespace mod_adaptivequiz\local\repository;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/mod/adaptivequiz/locallib.php');
+
 use core_question\local\bank\question_version_status;
 use core_tag_tag;
 use question_finder;
@@ -29,7 +33,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class questions_repository {
-
     /**
      * Counts all questions in the pool tagged as 'adaptive' with a certain difficulty level.
      *
@@ -44,14 +47,14 @@ final class questions_repository {
         $questionstags = core_tag_tag::get_items_tags('core_question', 'question', array_keys($raw));
 
         // Filter 'non-adaptive' and level mismatching tags out.
-        $questionstags = array_map(function(array $tags) use ($level) {
-            return array_filter($tags, function(core_tag_tag $tag) use ($level) {
+        $questionstags = array_map(function (array $tags) use ($level) {
+            return array_filter($tags, function (core_tag_tag $tag) use ($level) {
                 return substr($tag->name, strlen(ADAPTIVEQUIZ_QUESTION_TAG)) === (string)$level;
             });
         }, $questionstags);
 
         // Filter empty tags arrays out.
-        $questionstags = array_filter($questionstags, function(array $tags) {
+        $questionstags = array_filter($questionstags, function (array $tags) {
             return !empty($tags);
         });
 
@@ -72,8 +75,8 @@ final class questions_repository {
             return [];
         }
 
-        list($tagidlistsql, $tagidlistparam) = $DB->get_in_or_equal($tagidlist);
-        list($categoryidlistsql, $categoryidlistparam) = $DB->get_in_or_equal($categoryidlist);
+        [$tagidlistsql, $tagidlistparam] = $DB->get_in_or_equal($tagidlist);
+        [$categoryidlistsql, $categoryidlistparam] = $DB->get_in_or_equal($categoryidlist);
 
         $difficultyselect = $DB->sql_substr('t.name', strlen(ADAPTIVEQUIZ_QUESTION_TAG) + 1);
         $sql = "SELECT {$difficultyselect} AS difficultylevel, COUNT(*) AS questionsnumber
@@ -93,8 +96,11 @@ final class questions_repository {
             AND qbe.questioncategoryid {$categoryidlistsql}
             GROUP BY t.name";
 
-        $params = array_merge([question_version_status::QUESTION_STATUS_READY, 'question'], $tagidlistparam,
-            $categoryidlistparam);
+        $params = array_merge(
+            [question_version_status::QUESTION_STATUS_READY, 'question'],
+            $tagidlistparam,
+            $categoryidlistparam
+        );
 
         $records = $DB->get_records_sql($sql, $params);
         if (empty($records)) {
@@ -130,16 +136,20 @@ final class questions_repository {
 
         $params = [];
 
-        list($tagswhere, $tempparam) = $DB->get_in_or_equal($tagidlist, SQL_PARAMS_NAMED, 'tagids');
+        [$tagswhere, $tempparam] = $DB->get_in_or_equal($tagidlist, SQL_PARAMS_NAMED, 'tagids');
         $params += $tempparam;
 
-        list($categorywhere, $tempparam) = $DB->get_in_or_equal($categoryidlist, SQL_PARAMS_NAMED, 'qcatids');
+        [$categorywhere, $tempparam] = $DB->get_in_or_equal($categoryidlist, SQL_PARAMS_NAMED, 'qcatids');
         $params += $tempparam;
 
         $excludequestionsclause = '';
         if (!empty($excludequestionidlist)) {
-            list($excludequestionssql, $tempparam) = $DB->get_in_or_equal($excludequestionidlist, SQL_PARAMS_NAMED, 'excqids',
-                false);
+            [$excludequestionssql, $tempparam] = $DB->get_in_or_equal(
+                $excludequestionidlist,
+                SQL_PARAMS_NAMED,
+                'excqids',
+                false
+            );
             $excludequestionsclause = "AND q.id {$excludequestionssql}";
             $params += $tempparam;
         }

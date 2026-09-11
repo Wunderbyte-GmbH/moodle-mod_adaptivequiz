@@ -24,6 +24,9 @@
 
 namespace mod_adaptivequiz\event;
 
+/**
+ * Course module instance list viewed.
+ */
 class course_module_instance_list_viewed extends \core\event\course_module_instance_list_viewed {
     /**
      * Create the event from course record.
@@ -32,9 +35,9 @@ class course_module_instance_list_viewed extends \core\event\course_module_insta
      * @return course_module_instance_list_viewed
      */
     public static function create_from_course(\stdClass $course) {
-        $params = array(
-            'context' => \context_course::instance($course->id)
-        );
+        $params = [
+            'context' => \context_course::instance($course->id),
+        ];
         $event = self::create($params);
         $event->add_record_snapshot('course', $course);
         return $event;

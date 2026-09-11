@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * @copyright  2013 Middlebury College {@link http://www.middlebury.edu/}
- * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_adaptivequiz\output\questionanalysis;
 
 use html_table;
@@ -31,15 +25,21 @@ use question_display_options;
 use question_engine;
 use stdClass;
 
+/**
+ * A dedicated renderer for question analysis.
+ *
+ * @package    mod_adaptivequiz
+ * @copyright  2013 Middlebury College {@link http://www.middlebury.edu/}
+ * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class renderer extends plugin_renderer_base {
-    /** @var string $sortdir the sorting direction being used */
-    protected $sortdir = '';
-    /** @var moodle_url $sorturl the current base url used for keeping the table sorted */
-    protected $sorturl = '';
     /** @var int $groupid variable used to reference the groupid that is currently being used to filter by */
     public $groupid = 0;
+
     /** @var array options that should be used for opening the secure popup. */
-    protected static $popupoptions = array(
+
+    protected static $popupoptions = [
         'left' => 0,
         'top' => 0,
         'fullscreen' => true,
@@ -50,8 +50,8 @@ class renderer extends plugin_renderer_base {
         'titlebar' => false,
         'location' => false,
         'status' => false,
-        'menubar' => false
-    );
+        'menubar' => false,
+    ];
 
     /**
      * This function returns page header information to be printed to the page
@@ -71,8 +71,10 @@ class renderer extends plugin_renderer_base {
 
     /**
      * This function generates the HTML required to display the initial reports table
+     * @param mixed $headers Headers.
      * @param array $records attempt records from adaptivequiz_attempt table
      * @param stdClass $cm course module object set to the instance of the activity
+     * @param mixed $baseurl Baseurl.
      * @param string $sort the column the the table is to be sorted by
      * @param string $sortdir the direction of the sort
      * @return string HTML markup
@@ -81,44 +83,45 @@ class renderer extends plugin_renderer_base {
         $table = new html_table();
         $table->attributes['class'] = 'generaltable quizsummaryofattempt boxaligncenter';
         $table->head = $this->format_report_table_headers($headers, $cm, $baseurl, $sort, $sortdir);
-        $table->align = array('center', 'center', 'center');
-        $table->size = array('', '', '');
+        $table->align = ['center', 'center', 'center'];
+        $table->size = ['', '', ''];
 
         $table->data = $records;
         return html_writer::table($table);
     }
 
     /**
-     * This function creates the table header links that will be used to allow instructor to sort the data
-     * @param stdClass $cm a course module object set to the instance of the activity
-     * @param string $sort the column the the table is to be sorted by
-     * @param string $sortdir the direction of the sort
-     * @return array an array of column headers (firstname / lastname, number of attempts, standard error)
+     * This function creates the table header links that will be used to allow instructor to sort the data.
+     *
+     * @param array $headers Headers.
+     * @param stdClass $cm a course module object set to the instance of the activity.
+     * @param mixed $baseurl Baseurl.
+     * @param string $sort the column the the table is to be sorted by.
+     * @param string $sortdir the direction of the sort.
+     * @return array An array of column headers (firstname / lastname, number of attempts, standard error).
      */
     public function format_report_table_headers($headers, $cm, $baseurl, $sort, $sortdir) {
         /* Create header links */
-        $contents = array();
+        $contents = [];
         foreach ($headers as $key => $name) {
             if ($sort == $key) {
                 $seperator = ' ';
                 if ($sortdir == 'DESC') {
-                    $sortdir = 'ASC';
-                    $imageparam = array('src' => $this->image_url('t/up'), 'alt' => '');
-                    $icon = html_writer::empty_tag('img', $imageparam);
+                    $icon = $this->pix_icon('t/sort_asc', get_string('asc'));
+                    $newsortdir = 'ASC';
                 } else {
-                    $sortdir = 'DESC';
-                    $imageparam = array('src' => $this->image_url('t/down'), 'alt' => '');
-                    $icon = html_writer::empty_tag('img', $imageparam);
+                    $icon = $this->pix_icon('t/sort_desc', get_string('desc'));
+                    $newsortdir = 'DESC';
                 }
             } else {
-                $sortdir = 'ASC';
+                $newsortdir = 'ASC';
                 $seperator = '';
                 $icon = '';
             }
 
-            $url = new moodle_url($baseurl, array('cmid' => $cm->id, 'sort' => $key, 'sortdir' => $sortdir));
+            $url = new moodle_url($baseurl, ['cmid' => $cm->id, 'sort' => $key, 'sortdir' => $newsortdir]);
 
-            $contents[] = html_writer::link($url, $name.$seperator.$icon);
+            $contents[] = html_writer::link($url, $name) . $seperator . $icon;
         }
         return $contents;
     }
@@ -128,10 +131,14 @@ class renderer extends plugin_renderer_base {
      * @param int $totalrecords the total number of records returned
      * @param int $page the current page the user is on
      * @param int $perpage the number of records displayed on one page
+     * @param mixed $cm Cm.
+     * @param mixed $baseurl Baseurl.
+     * @param mixed $sort Sort.
+     * @param mixed $sortdir Sortdir.
      * @return string HTML markup
      */
     public function print_paging_bar($totalrecords, $page, $perpage, $cm, $baseurl, $sort, $sortdir) {
-        $url = new moodle_url($baseurl, array('cmid' => $cm->id, 'sort' => $sort, 'sortdir' => $sortdir));
+        $url = new moodle_url($baseurl, ['cmid' => $cm->id, 'sort' => $sort, 'sortdir' => $sortdir]);
 
         $output = '';
         $output .= $this->paging_bar($totalrecords, $page, $perpage, $url);
@@ -147,14 +154,14 @@ class renderer extends plugin_renderer_base {
     public function get_single_question_report($headers, $record) {
         $table = new html_table();
         $table->attributes['class'] = 'generaltable quizsummaryofattempt boxaligncenter';
-        $table->head = array(get_string('statistic', 'adaptivequiz'), get_string('value', 'adaptivequiz'));
-        $table->align = array('left', 'left');
-        $table->size = array('200px', '');
+        $table->head = [get_string('statistic', 'adaptivequiz'), get_string('value', 'adaptivequiz')];
+        $table->align = ['left', 'left'];
+        $table->size = ['200px', ''];
         $table->width = '100%';
 
         while ($name = array_shift($headers)) {
             $value = array_shift($record);
-            $table->data[] = array($name, $value);
+            $table->data[] = [$name, $value];
         }
 
         return html_writer::table($table);
@@ -163,7 +170,8 @@ class renderer extends plugin_renderer_base {
     /**
      * Generate an HTML view of a single question.
      *
-     * @param  $analyzer
+     * @param question_analyser $analyzer Analyzer.
+     * @param mixed $context Context.
      * @return string HTML markup
      */
     public function get_question_details(question_analyser $analyzer, $context) {

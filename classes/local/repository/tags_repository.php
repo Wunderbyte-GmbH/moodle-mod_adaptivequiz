@@ -26,7 +26,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class tags_repository {
-
     /**
      * Gets a map of difficulty level => tag id for the given tags.
      *
@@ -36,7 +35,7 @@ final class tags_repository {
     public static function get_question_level_to_tag_id_mapping_by_tag_names(array $tagnames): array {
         global $DB;
 
-        list($tagnameselect, $tagnameparams) = $DB->get_in_or_equal($tagnames);
+        [$tagnameselect, $tagnameparams] = $DB->get_in_or_equal($tagnames);
 
         $sql = 'SELECT t.id, ' . $DB->sql_substr('t.name', strlen(ADAPTIVEQUIZ_QUESTION_TAG) + 1) . ' AS level
              FROM {tag} t
@@ -50,7 +49,7 @@ final class tags_repository {
         }
 
         return array_flip(
-            array_map(function(stdClass $record): int {
+            array_map(function (stdClass $record): int {
                 return $record->level;
             }, $records)
         );
@@ -65,7 +64,7 @@ final class tags_repository {
     public static function get_tag_id_list_by_tag_names(array $tagnames): array {
         global $DB;
 
-        list($tagnameselect, $tagnameparams) = $DB->get_in_or_equal($tagnames);
+        [$tagnameselect, $tagnameparams] = $DB->get_in_or_equal($tagnames);
 
         $sql = 'SELECT t.id
                   FROM {tag} t

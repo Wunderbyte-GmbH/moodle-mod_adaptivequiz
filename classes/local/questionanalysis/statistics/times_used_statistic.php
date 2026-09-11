@@ -26,13 +26,16 @@ namespace mod_adaptivequiz\local\questionanalysis\statistics;
 
 use mod_adaptivequiz\local\questionanalysis\question_analyser;
 
+/**
+ * Times used statistic.
+ */
 class times_used_statistic implements question_statistic {
     /**
      * Answer a display-name for this statistic.
      *
      * @return string
      */
-    public function get_display_name () {
+    public function get_display_name() {
         return get_string('times_used_display_name', 'adaptivequiz');
     }
 
@@ -42,7 +45,7 @@ class times_used_statistic implements question_statistic {
      * @param question_analyser $analyser
      * @return question_statistic_result
      */
-    public function calculate (question_analyser $analyser) {
-        return new times_used_statistic_result (count($analyser->get_results()));
+    public function calculate(question_analyser $analyser) {
+        return new times_used_statistic_result(count($analyser->get_results()));
     }
 }

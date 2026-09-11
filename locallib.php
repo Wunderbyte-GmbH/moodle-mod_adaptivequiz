@@ -17,6 +17,7 @@
 /**
  * Some utility functions for the adaptive quiz activity.
  *
+ * @package    mod_adaptivequiz
  * @copyright  2013 onwards Remote-Learner {@link http://www.remote-learner.ca/}
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -33,6 +34,7 @@ use core_question\local\bank\question_edit_contexts;
 use mod_adaptivequiz\event\attempt_completed;
 use mod_adaptivequiz\local\attempt\attempt_state;
 use mod_adaptivequiz\local\catalgo;
+use mod_adaptivequiz\local\catmodel\catmodel_resolver;
 use qbank_managecategories\helper as qbank_managecategories_helper;
 
 // Default tagging used.
@@ -56,18 +58,18 @@ define('ADAPTIVEQUIZ_STOPCRI_MAXLEVEL', 'maxlevel');
 define('ADAPTIVEQUIZ_STOPCRI_MINLEVEL', 'minlevel');
 
 /**
- * This function returns an array of question bank categories accessible to the
- * current user in the given context
- * @param context $context A context object
- * @return array An array whose keys are the question category ids and values
- * are the name of the question category
+ * This function returns an array of question bank categories accessible to the current user in the given context.
+ *
+ * @param context $context A context object.
+ * @return array An array whose keys are the question category ids and values are the name of the question category.
+ * @deprecated Since version 2.6.0.
  */
 function adaptivequiz_get_question_categories(context $context) {
     if (empty($context)) {
-        return array();
+        return [];
     }
 
-    $options      = array();
+    $options      = [];
     $qesteditctx  = new question_edit_contexts($context);
     $contexts     = $qesteditctx->having_one_edit_tab_cap('editq');
     $questioncats = qbank_managecategories_helper::question_category_options($contexts);
@@ -87,9 +89,11 @@ function adaptivequiz_get_question_categories(context $context) {
 }
 
 /**
- * This function is healper method to create default
- * @param object $context A context object
- * @return mixed The default category in the course context or false
+ * This function is helper method to create default.
+ *
+ * @param object $context A context object.
+ * @return mixed The default category in the course context or false.
+ * @deprecated Since version 2.6.0.
  */
 function adaptivequiz_make_default_categories($context) {
     if (empty($context)) {
@@ -97,30 +101,31 @@ function adaptivequiz_make_default_categories($context) {
     }
 
     // Create default question categories.
-    $defaultcategoryobj = question_make_default_categories(array($context));
+    $defaultcategoryobj = question_make_default_categories([$context]);
 
     return $defaultcategoryobj;
 }
 
 /**
- * This function returns an array of question categories that were
- * selected for use for the activity instance
- * @param int $instance Instance id
- * @return array an array of question category ids
+ * This function returns an array of question categories that were selected for use for the activity instance.
+ *
+ * @param int $instance Instance id.
+ * @return array An array of question category ids.
+ * @deprecated Since version 2.6.0.
  */
 function adaptivequiz_get_selected_question_cateogires($instance) {
     global $DB;
 
-    $selquestcat = array();
+    $selquestcat = [];
 
     if (empty($instance)) {
-        return array();
+        return [];
     }
 
-    $records = $DB->get_records('adaptivequiz_question', array('instance' => $instance));
+    $records = $DB->get_records('adaptivequiz_question', ['instance' => $instance]);
 
     if (empty($records)) {
-        return array();
+        return [];
     }
 
     foreach ($records as $record) {
@@ -144,7 +149,7 @@ function adaptivequiz_count_user_previous_attempts($instanceid = 0, $userid = 0)
         return 0;
     }
 
-    $param = array('instance' => $instanceid, 'userid' => $userid, 'attemptstate' => attempt_state::COMPLETED);
+    $param = ['instance' => $instanceid, 'userid' => $userid, 'attemptstate' => attempt_state::COMPLETED];
     $count = $DB->count_records('adaptivequiz_attempt', $param);
 
     return $count;
@@ -174,7 +179,7 @@ function adaptivequiz_allowed_attempt($maxattempts = 0, $attempts = 0) {
 function adaptivequiz_uniqueid_part_of_attempt($uniqueid, $instance, $userid) {
     global $DB;
 
-    $param = array('uniqueid' => $uniqueid, 'instance' => $instance, 'userid' => $userid);
+    $param = ['uniqueid' => $uniqueid, 'instance' => $instance, 'userid' => $userid];
     return $DB->record_exists('adaptivequiz_attempt', $param);
 }
 
@@ -197,7 +202,7 @@ function adaptivequiz_update_attempt_data($uniqueid, $instance, $userid, $level,
         return false;
     }
 
-    $param = array('uniqueid' => $uniqueid, 'instance' => $instance, 'userid' => $userid);
+    $param = ['uniqueid' => $uniqueid, 'instance' => $instance, 'userid' => $userid];
     try {
         $fields = 'id,difficultysum,questionsattempted,timemodified,standarderror,measure';
         $attempt = $DB->get_record('adaptivequiz_attempt', $param, $fields, MUST_EXIST);
@@ -225,38 +230,68 @@ function adaptivequiz_update_attempt_data($uniqueid, $instance, $userid, $level,
 /**
  * This function sets the complete status for an attempt.
  *
- * @param int $uniqueid
- * @param stdClass $adaptivequiz
- * @param context_module $context
- * @param int $userid
- * @param string $statusmessage
+ * @throws dml_exception
+ * @throws coding_exception
+ * @param int $uniqueid Uniqueid.
+ * @param stdClass $adaptivequiz Adaptivequiz.
+ * @param context_module $context Context.
+ * @param int $userid Userid.
+ * @param string $standarderror Standarderror.
+ * @param string $statusmessage Statusmessage.
  */
 function adaptivequiz_complete_attempt(
     int $uniqueid,
     stdClass $adaptivequiz,
     context_module $context,
     int $userid,
+    string $standarderror,
     string $statusmessage
 ): void {
     global $DB;
 
-    $attempt = $DB->get_record('adaptivequiz_attempt',
-        ['uniqueid' => $uniqueid, 'instance' => $adaptivequiz->id, 'userid' => $userid], '*', MUST_EXIST);
+    $attempt = $DB->get_record(
+        'adaptivequiz_attempt',
+        ['uniqueid' => $uniqueid, 'instance' => $adaptivequiz->id, 'userid' => $userid],
+        '*',
+        MUST_EXIST
+    );
 
     // Need to keep the record as it is before triggering the event below.
     $attemptrecordsnapshot = clone $attempt;
 
+    $now = time();
     $attempt->attemptstate = attempt_state::COMPLETED;
     $attempt->attemptstopcriteria = $statusmessage;
-    $attempt->timemodified = time();
+
+    // The completion time is set exactly once, at the transition to completed, and never touched
+    // again. The reports used to show timemodified instead, which drifts with every later change
+    // to the attempt - a regrade, a comment - so a finished attempt appeared to move in time.
+    if (empty($attempt->timefinished)) {
+        $attempt->timefinished = $now;
+    }
+
+    $attempt->timemodified = $now;
+    $attempt->standarderror = $standarderror;
     $DB->update_record('adaptivequiz_attempt', $attempt);
+
+    // Hand the completed attempt to the CAT model. It runs from the status change, not from the
+    // attempt-finished page: whether that page is ever reached is up to the participant, but the
+    // CAT model has to be able to persist its result either way.
+    catmodel_resolver::callback(
+        $adaptivequiz->catmodel ?? null,
+        'post_complete_attempt_callback',
+        $adaptivequiz,
+        $context,
+        $userid,
+        $attempt
+    );
 
     adaptivequiz_update_grades($adaptivequiz, $userid);
 
     $event = attempt_completed::create([
         'objectid' => $attempt->id,
         'context' => $context,
-        'userid' => $userid
+        'userid' => $userid,
     ]);
     $event->add_record_snapshot('adaptivequiz_attempt', $attemptrecordsnapshot);
     $event->add_record_snapshot('adaptivequiz', $adaptivequiz);
@@ -282,7 +317,7 @@ function adaptivequiz_min_attempts_reached($uniqueid, $instance, $userid) {
                   AND adpq.minimumquestions <= adpqa.questionsattempted
          ORDER BY adpq.id ASC";
 
-    $param = array('uniqueid' => $uniqueid, 'instance' => $instance, 'userid' => $userid);
+    $param = ['uniqueid' => $uniqueid, 'instance' => $instance, 'userid' => $userid];
     $exists = $DB->record_exists_sql($sql, $param);
 
     return $exists;
@@ -309,7 +344,7 @@ function adaptivequiz_user_entered_password($instance) {
  */
 function adaptivequiz_get_difficulty_from_tags(array $tags) {
     foreach ($tags as $tag) {
-        if (preg_match('/^'.ADAPTIVEQUIZ_QUESTION_TAG.'([0-9]+)$/', $tag, $matches)) {
+        if (preg_match('/^' . ADAPTIVEQUIZ_QUESTION_TAG . '([0-9]+)$/', $tag, $matches)) {
             return (int) $matches[1];
         }
     }
@@ -318,15 +353,17 @@ function adaptivequiz_get_difficulty_from_tags(array $tags) {
 
 
 /**
+ * Adaptivequiz get grading options.
+ *
  * @return array int => lang string the options for calculating the quiz grade
  *      from the individual attempt grades.
  */
 function adaptivequiz_get_grading_options() {
-    return array(
+    return [
         ADAPTIVEQUIZ_GRADEHIGHEST => get_string('gradehighest', 'adaptivequiz'),
         ADAPTIVEQUIZ_ATTEMPTFIRST => get_string('attemptfirst', 'adaptivequiz'),
-        ADAPTIVEQUIZ_ATTEMPTLAST  => get_string('attemptlast', 'adaptivequiz')
-    );
+        ADAPTIVEQUIZ_ATTEMPTLAST  => get_string('attemptlast', 'adaptivequiz'),
+    ];
 }
 
 /**
@@ -340,10 +377,10 @@ function adaptivequiz_get_grading_options() {
 function adaptivequiz_get_user_grades($adaptivequiz, $userid = 0) {
     global $CFG, $DB;
 
-    $params = array(
+    $params = [
         'instance' => $adaptivequiz->id,
         'attemptstate' => attempt_state::COMPLETED,
-    );
+    ];
     $userwhere = '';
     if ($userid) {
         $params['userid'] = $userid;
@@ -358,10 +395,13 @@ function adaptivequiz_get_user_grades($adaptivequiz, $userid = 0) {
                $userwhere";
     $records = $DB->get_records_sql($sql, $params);
 
-    $grades = array();
+    $grades = [];
     foreach ($records as $grade) {
-        $grade->rawgrade = catalgo::map_logit_to_scale($grade->measure,
-            $grade->highestlevel, $grade->lowestlevel);
+        $grade->rawgrade = catalgo::map_logit_to_scale(
+            $grade->measure,
+            $grade->highestlevel,
+            $grade->lowestlevel
+        );
 
         if (empty($grades[$grade->userid])) {
             // Store the first attempt.

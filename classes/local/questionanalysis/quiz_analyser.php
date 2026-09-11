@@ -18,7 +18,7 @@ namespace mod_adaptivequiz\local\questionanalysis;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/tag/lib.php');
+require_once($CFG->dirroot . '/tag/lib.php');
 
 use core_tag_tag;
 use Exception;
@@ -39,12 +39,11 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class quiz_analyser {
-
     /** @var array $questions An array of all questions loaded and their stats */
-    protected $questions = array();
+    protected $questions = [];
 
     /** @var array $statistics An array of the statistics added to this report */
-    protected $statistics = array();
+    protected $statistics = [];
 
     /**
      * Constructor - Create a new analyser.
@@ -52,7 +51,6 @@ class quiz_analyser {
      * @return void
      */
     public function __construct() {
-
     }
 
     /**
@@ -66,8 +64,10 @@ class quiz_analyser {
         $adaptivequiz  = $DB->get_record('adaptivequiz', ['id' => $instance], '*');
 
         // Get all of the completed attempts for this adaptive quiz instance.
-        $attempts  = $DB->get_records('adaptivequiz_attempt',
-            ['instance' => $instance, 'attemptstate' => attempt_state::COMPLETED]);
+        $attempts  = $DB->get_records(
+            'adaptivequiz_attempt',
+            ['instance' => $instance, 'attemptstate' => attempt_state::COMPLETED]
+        );
 
         foreach ($attempts as $attempt) {
             if ($attempt->uniqueid == 0) {
@@ -82,8 +82,12 @@ class quiz_analyser {
             }
 
             // For each attempt, get the attempt's final score.
-            $score = new attempt_score($attempt->measure, $attempt->standarderror, $adaptivequiz->lowestlevel,
-                $adaptivequiz->highestlevel);
+            $score = new attempt_score(
+                $attempt->measure,
+                $attempt->standarderror,
+                $adaptivequiz->lowestlevel,
+                $adaptivequiz->highestlevel
+            );
 
             // For each attempt, loop through all questions asked and add that usage
             // to the question.
@@ -95,8 +99,13 @@ class quiz_analyser {
                 if (empty($this->questions[$question->id])) {
                     $tags = core_tag_tag::get_item_tags_array('core_question', 'question', $question->id);
                     $difficulty = adaptivequiz_get_difficulty_from_tags($tags);
-                    $this->questions[$question->id] = new question_analyser($quba->get_owning_context(), $question,
-                        $difficulty, $adaptivequiz->lowestlevel, $adaptivequiz->highestlevel);
+                    $this->questions[$question->id] = new question_analyser(
+                        $quba->get_owning_context(),
+                        $question,
+                        $difficulty,
+                        $adaptivequiz->lowestlevel,
+                        $adaptivequiz->highestlevel
+                    );
                 }
 
                 // Record the attempt score and the individual question result.
@@ -130,7 +139,7 @@ class quiz_analyser {
      * @return array
      */
     public function get_header() {
-        $header = array();
+        $header = [];
         $header['id'] = get_string('id', 'adaptivequiz');
         $header['name'] = get_string('adaptivequizname', 'adaptivequiz');
         $header['level'] = get_string('attemptquestion_level', 'adaptivequiz');
@@ -165,7 +174,9 @@ class quiz_analyser {
         }
 
         if ($direction != 'ASC' && $direction != 'DESC') {
-            throw new InvalidArgumentException('Invalid sort direction. Must be SORT_ASC or SORT_DESC, \''.$direction.'\' given.');
+            throw new InvalidArgumentException(
+                'Invalid sort direction. Must be SORT_ASC or SORT_DESC, \'' . $direction . '\' given.'
+            );
         }
         if ($direction == 'DESC') {
             $direction = SORT_DESC;

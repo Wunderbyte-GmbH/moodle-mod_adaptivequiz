@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * This class does the work of fetching a questions associated with a level of difficulty and within
- * a question category.
- *
- * @copyright  2013 onwards Remote-Learner {@link http://www.remote-learner.ca/}
- * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace mod_adaptivequiz\local;
 
 use coding_exception;
 use dml_exception;
 use dml_read_exception;
 use invalid_parameter_exception;
+use mod_adaptivequiz\item_bank_helper;
 use mod_adaptivequiz\local\repository\questions_number_per_difficulty;
 use mod_adaptivequiz\local\repository\questions_repository;
 use mod_adaptivequiz\local\repository\tags_repository;
 use moodle_exception;
 use stdClass;
 
+/**
+ * This class does the work of fetching questions associated with a level of difficulty in the item bank.
+ *
+ * @package    mod_adaptivequiz
+ * @copyright  2013 onwards Remote-Learner {@link http://www.remote-learner.ca/}
+ * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class fetchquestion {
     /**
      * The maximum number of attempts at finding a tag containing questions
@@ -55,16 +55,16 @@ class fetchquestion {
     protected $debugenabled = false;
 
     /** @var array $debug array containing debugging information */
-    protected $debug = array();
+    protected $debug = [];
 
     /** @var array $tags an array of tags that used to identify eligible questions for the attempt */
-    protected $tags = array();
+    protected $tags = [];
 
     /** @var int $level the level of difficutly that will be used to fetch questions */
     protected $level = 1;
 
-    /** @var string $questcatids a string of comma separated question category ids */
-    protected $questcatids = '';
+    /** @var int[] $questcatids An array of question category ID. */
+    protected $questcatids = [];
 
     /** @var int $minimumlevel the minimum level achievable in the attempt */
     protected $minimumlevel;
@@ -76,7 +76,7 @@ class fetchquestion {
      * @var array $tagquestsum an array whose keys are difficulty numbers and values are the sum of questions associated with the
      *      difficulty level
      */
-    protected $tagquestsum = array();
+    protected $tagquestsum = [];
 
     /** @var bool $rebuild a flag used to force the rebuilding of the $tagquestsum property */
     public $rebuild = false;
@@ -105,15 +105,17 @@ class fetchquestion {
         }
 
         if ($minimumlevel >= $maximumlevel) {
-            throw new coding_exception('Minimum level is greater than maximum level',
-                'Invalid minimum and maximum parameters passed');
+            throw new coding_exception(
+                'Minimum level is greater than maximum level',
+                'Invalid minimum and maximum parameters passed'
+            );
         }
 
         $this->level = $level;
 
         // Initialize $tagquestsum property.
         if (!isset($SESSION->adpqtagquestsum)) {
-            $SESSION->adpqtagquestsum = array();
+            $SESSION->adpqtagquestsum = [];
             $this->tagquestsum = $SESSION->adpqtagquestsum;
         } else {
             $this->tagquestsum = $SESSION->adpqtagquestsum;
@@ -162,7 +164,7 @@ class fetchquestion {
     /**
      * Reset the maximum question level to search for to a new value
      *
-     * @param int $maximumlevel
+     * @param mixed $minimumlevel Minimumlevel.
      * @return void
      * @throws coding_exception if the minimum level is less than maximum level
      */
@@ -175,7 +177,7 @@ class fetchquestion {
 
     /**
      * This functions adds a message to the debugging array
-     * @param string $message: details of the debugging message
+     * @param string $message details of the debugging message
      * @return void
      */
     protected function print_debug($message = '') {
@@ -212,7 +214,7 @@ class fetchquestion {
 
     /**
      * This functions sets the $tagquestsum class property
-     * @param array an array whose keys are difficulty levels and values are the sum of questions associated with the difficulty
+     * @param mixed $tagquestsum Tagquestsum.
      */
     public function set_tagquestsum($tagquestsum) {
         $this->tagquestsum = $tagquestsum;
@@ -254,7 +256,7 @@ class fetchquestion {
         // Check to see if the tagquestsum argument is initialized.
         $count = count($tagquestsum);
         if (empty($count) || !empty($rebuild)) {
-            $tagquestsum = array();
+            $tagquestsum = [];
             // Retrieve the question categories set for this activity.
             $questcat = $this->retrieve_question_categories();
             // Traverse through the array of configured tags used by the activity.
@@ -291,24 +293,29 @@ class fetchquestion {
      * @param array $excquestids an array of question ids to exclude from the search
      * @return array an array of question ids
      */
-    public function fetch_questions($excquestids = array()) {
-        $questids = array();
+    public function fetch_questions($excquestids = []) {
+        $questids = [];
 
         // Initialize the difficulty tag question sum property for searching.
-        $this->tagquestsum = $this->initalize_tags_with_quest_count($this->tagquestsum, $this->tags, $this->minimumlevel,
-            $this->maximumlevel, $this->rebuild);
+        $this->tagquestsum = $this->initalize_tags_with_quest_count(
+            $this->tagquestsum,
+            $this->tags,
+            $this->minimumlevel,
+            $this->maximumlevel,
+            $this->rebuild
+        );
 
         // If tagquestsum property ie empty then return with nothing.
         if (empty($this->tagquestsum)) {
             $this->print_debug('fetch_questions() - tagquestsum is empty');
-            return array();
+            return [];
         }
         // Check if the requested level has available questions.
         if (array_key_exists($this->level, $this->tagquestsum) && 0 < $this->tagquestsum[$this->level]) {
             $tagids = $this->retrieve_tag($this->level);
             $questids = $this->find_questions_with_tags($tagids, $excquestids);
-            $this->print_debug('fetch_questions() - Requested level '.$this->level.' has available questions. '.
-                $this->tagquestsum[$this->level].' question remaining.');
+            $this->print_debug('fetch_questions() - Requested level ' . $this->level . ' has available questions. ' .
+                $this->tagquestsum[$this->level] . ' question remaining.');
             return $questids;
         }
 
@@ -318,7 +325,7 @@ class fetchquestion {
             // Check if the offset level is now out of bounds and stop the loop.
             if ($this->minimumlevel > $level - $i && $this->maximumlevel < $level + $i) {
                 $i += self::MAXNUMTRY + 1;
-                $this->print_debug('fetch_questions() - searching levels has gone out of bounds of the min and max levels. '.
+                $this->print_debug('fetch_questions() - searching levels has gone out of bounds of the min and max levels. ' .
                     'No questions returned');
                 continue;
             }
@@ -337,8 +344,8 @@ class fetchquestion {
                 $questids = $this->find_questions_with_tags($tagids, $excquestids);
                 $this->level = $newlevel;
                 $i += self::MAXNUMTRY + 1;
-                $this->print_debug('fetch_questions() - original level could not be found.  Returned a question from level '.
-                    $newlevel.' instead');
+                $this->print_debug('fetch_questions() - original level could not be found.  Returned a question from level ' .
+                    $newlevel . ' instead');
                 continue;
             }
 
@@ -357,7 +364,7 @@ class fetchquestion {
                 $this->level = $newlevel;
                 $i += self::MAXNUMTRY + 1;
                 $this->print_debug('fetch_questions() - original level could not be found.  Returned a question from level '
-                    .$newlevel.' instead');
+                    . $newlevel . ' instead');
                 continue;
             }
         }
@@ -381,7 +388,7 @@ class fetchquestion {
             throw new invalid_parameter_exception('Tag prefix cannot be empty.');
         }
 
-        $tags = array_map(function(int $level): string {
+        $tags = array_map(function (int $level): string {
             return ADAPTIVEQUIZ_QUESTION_TAG . $level;
         }, range($minimumlevel, $maximumlevel));
 
@@ -417,7 +424,7 @@ class fetchquestion {
      * @throws coding_exception
      */
     public function retrieve_tag(int $level = 0): array {
-        $tags = array_map(function(string $tag) use($level): string {
+        $tags = array_map(function (string $tag) use ($level): string {
             return $tag . $level;
         }, $this->tags);
 
@@ -442,36 +449,29 @@ class fetchquestion {
     }
 
     /**
-     * Stores the value of 'tagquestsum' property in global session.
-     */
-    public function store_tagquestsum_in_session(): void {
-        global $SESSION;
-
-        $SESSION->adpqtagquestsum = $this->tagquestsum;
-    }
-
-    /**
      * This function retrieves all of the question categories used the activity.
-     * @return array an array of quesiton category ids
+     *
+     * @return int[] An array of quesiton category ids.
      */
-    protected function retrieve_question_categories() {
-        global $DB;
-
+    protected function retrieve_question_categories(): array {
         // Check cached result.
         if (!empty($this->questcatids)) {
-            $this->print_debug('retrieve_question_categories() - question category ids (from cache): '.
-                $this->vardump($this->questcatids));
             return $this->questcatids;
         }
 
-        $param = array('instance' => $this->adaptivequiz->id);
-        $records = $DB->get_records_menu('adaptivequiz_question', $param, 'questioncategory ASC', 'id,questioncategory');
+        $qcategoryidlist = item_bank_helper::get_question_categories($this->adaptivequiz->id);
 
         // Cache the results.
-        $this->questcatids = $records;
+        $this->questcatids = $qcategoryidlist;
 
-        $this->print_debug('retrieve_question_categories() - question category ids: '.$this->vardump($records));
+        return $qcategoryidlist;
+    }
 
-        return $records;
+    /**
+     * The destruct method saves the difficult level and qustion number mapping to the session variable
+     */
+    public function __destruct() {
+        global $SESSION;
+        $SESSION->adpqtagquestsum = $this->tagquestsum;
     }
 }

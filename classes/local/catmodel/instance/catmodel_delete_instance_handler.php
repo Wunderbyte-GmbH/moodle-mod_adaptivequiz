@@ -26,8 +26,10 @@ namespace mod_adaptivequiz\local\catmodel\instance;
 
 use stdClass;
 
+/**
+ * Catmodel delete instance handler.
+ */
 interface catmodel_delete_instance_handler {
-
     /**
      * Called when an instance of adaptive quiz activity is deleted.
      *

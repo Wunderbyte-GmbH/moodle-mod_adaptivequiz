@@ -26,11 +26,14 @@ namespace mod_adaptivequiz\form;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 use moodleform;
 use html_writer;
 
+/**
+ * Requiredpassword.
+ */
 class requiredpassword extends moodleform {
     /** @var string $passwordmessage a string containing text for a failed password attempt */
     public $passwordmessage = '';
@@ -54,7 +57,7 @@ class requiredpassword extends moodleform {
         $mform->addElement('header', 'passwordheader', get_string('password'));
         $mform->addElement('static', 'passwordmessage', '', get_string('requirepasswordmessage', 'adaptivequiz'));
 
-        $attr = array('style' => 'color:red;', 'class' => 'wrongpassword');
+        $attr = ['style' => 'color:red;', 'class' => 'wrongpassword'];
         $html = html_writer::start_tag('div', $attr);
         $mform->addElement('html', $html);
         $mform->addElement('static', 'message');

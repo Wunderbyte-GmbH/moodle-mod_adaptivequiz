@@ -26,13 +26,16 @@ namespace mod_adaptivequiz\local\questionanalysis\statistics;
 
 use mod_adaptivequiz\local\questionanalysis\question_analyser;
 
+/**
+ * Percent correct statistic.
+ */
 class percent_correct_statistic implements question_statistic {
     /**
      * Answer a display-name for this statistic.
      *
      * @return string
      */
-    public function get_display_name () {
+    public function get_display_name() {
         return get_string('percent_correct_display_name', 'adaptivequiz');
     }
 
@@ -42,7 +45,7 @@ class percent_correct_statistic implements question_statistic {
      * @param question_analyser $analyser
      * @return question_statistic_result
      */
-    public function calculate (question_analyser $analyser) {
+    public function calculate(question_analyser $analyser) {
         $correct = 0;
         $total = 0;
         foreach ($analyser->get_results() as $result) {
@@ -52,9 +55,9 @@ class percent_correct_statistic implements question_statistic {
             }
         }
         if ($total) {
-            return new percent_correct_statistic_result ($correct / $total);
+            return new percent_correct_statistic_result($correct / $total);
         } else {
-            return new percent_correct_statistic_result (0);
+            return new percent_correct_statistic_result(0);
         }
     }
 }

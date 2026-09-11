@@ -16,7 +16,7 @@
 
 /**
  * The class represents questions number per each difficulty, this is what
- * {@link questions_repository::count_questions_number_per_difficulty()} returns.
+ * {@see questions_repository::count_questions_number_per_difficulty} returns.
  * The purpose of this class is keeping the related pieces of data together, as the client code normally requires both
  * difficulty level and number of questions for this difficulty set to perform its task.
  *
@@ -26,6 +26,9 @@
 
 namespace mod_adaptivequiz\local\repository;
 
+/**
+ * Questions number per difficulty.
+ */
 final class questions_number_per_difficulty {
     /**
      * @var int $difficulty
@@ -37,15 +40,31 @@ final class questions_number_per_difficulty {
      */
     private $questionsnumber;
 
+    /**
+     * Construct.
+     *
+     * @param int $difficulty Difficulty.
+     * @param int $questionsnumber Questionsnumber.
+     */
     public function __construct(int $difficulty, int $questionsnumber) {
         $this->difficulty = $difficulty;
         $this->questionsnumber = $questionsnumber;
     }
 
+    /**
+     * Difficulty.
+     *
+     * @return int
+     */
     public function difficulty(): int {
         return $this->difficulty;
     }
 
+    /**
+     * Questions number.
+     *
+     * @return int
+     */
     public function questions_number(): int {
         return $this->questionsnumber;
     }

@@ -26,8 +26,10 @@ namespace mod_adaptivequiz\local\questionanalysis;
 
 use mod_adaptivequiz\local\catalgo;
 
+/**
+ * Attempt score.
+ */
 class attempt_score {
-
     /** @var float $measuredabilitylogits The measured ability of the attempt in logits. */
     protected $measuredabilitylogits = null;
 
@@ -43,9 +45,13 @@ class attempt_score {
     /**
      * Constructor
      *
+     * @param mixed $measuredabilitylogits Measuredabilitylogits.
+     * @param mixed $standarderrorlogits Standarderrorlogits.
+     * @param mixed $lowestlevel Lowestlevel.
+     * @param mixed $highestlevel Highestlevel.
      * @return void
      */
-    public function __construct ($measuredabilitylogits, $standarderrorlogits, $lowestlevel, $highestlevel) {
+    public function __construct($measuredabilitylogits, $standarderrorlogits, $lowestlevel, $highestlevel) {
         $this->measuredabilitylogits = $measuredabilitylogits;
         $this->standarderrorlogits = $standarderrorlogits;
         $this->lowestlevel = $lowestlevel;
@@ -57,7 +63,7 @@ class attempt_score {
      *
      * @return float
      */
-    public function measured_ability_in_logits () {
+    public function measured_ability_in_logits() {
         return $this->measuredabilitylogits;
     }
 
@@ -66,7 +72,7 @@ class attempt_score {
      *
      * @return float
      */
-    public function standard_error_in_logits () {
+    public function standard_error_in_logits() {
         return $this->standarderrorlogits;
     }
 
@@ -75,7 +81,7 @@ class attempt_score {
      *
      * @return float
      */
-    public function measured_ability_in_fraction () {
+    public function measured_ability_in_fraction() {
         return catalgo::convert_logit_to_fraction($this->measuredabilitylogits);
     }
 
@@ -84,7 +90,7 @@ class attempt_score {
      *
      * @return float
      */
-    public function standard_error_in_fraction () {
+    public function standard_error_in_fraction() {
         return catalgo::convert_logit_to_percent($this->standarderrorlogits);
     }
 
@@ -93,7 +99,7 @@ class attempt_score {
      *
      * @return float
      */
-    public function measured_ability_in_scale () {
+    public function measured_ability_in_scale() {
         return catalgo::map_logit_to_scale($this->measuredabilitylogits, $this->highestlevel, $this->lowestlevel);
     }
 
@@ -102,7 +108,7 @@ class attempt_score {
      *
      * @return float
      */
-    public function standard_error_in_scale () {
+    public function standard_error_in_scale() {
         return catalgo::convert_logit_to_percent($this->standarderrorlogits) * ($this->highestlevel - $this->lowestlevel);
     }
 }

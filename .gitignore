@@ -1,0 +1,6 @@
+
+# Installierte Catmodel-Subplugins liegen in eigenen Repositories.
+/catmodel/*
+!/catmodel/README.md
+!/catmodel/upgrade.txt
+!/catmodel/testcatmodel

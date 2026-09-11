@@ -25,8 +25,10 @@ namespace mod_adaptivequiz\local\report\users_attempts\filter;
 
 use mod_adaptivequiz\local\report\users_attempts\user_preferences\filter_user_preferences;
 
+/**
+ * Filter.
+ */
 final class filter {
-
     /**
      * @var int $adaptivequizid
      */
@@ -48,6 +50,11 @@ final class filter {
      */
     public $includeinactiveenrolments;
 
+    /**
+     * Fill from array.
+     *
+     * @param array $request Request.
+     */
     public function fill_from_array(array $request): void {
         foreach ($request as $propertyname => $propertyvalue) {
             if (property_exists($this, $propertyname)) {
@@ -56,11 +63,23 @@ final class filter {
         }
     }
 
+    /**
+     * Fill from preference.
+     *
+     * @param filter_user_preferences $filter Filter.
+     */
     public function fill_from_preference(filter_user_preferences $filter): void {
         $this->users = $filter->users();
         $this->includeinactiveenrolments = $filter->include_inactive_enrolments();
     }
 
+    /**
+     * From vars.
+     *
+     * @param int $adaptivequizid Adaptivequizid.
+     * @param int $groupid Groupid.
+     * @return self
+     */
     public static function from_vars(int $adaptivequizid, int $groupid): self {
         $return = new self();
         $return->adaptivequizid = $adaptivequizid;

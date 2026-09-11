@@ -28,8 +28,17 @@ use context;
 use mod_adaptivequiz\local\report\users_attempts\filter\filter;
 use mod_adaptivequiz\local\report\users_attempts\filter\filter_options;
 
+/**
+ * Sql resolver.
+ */
 final class sql_resolver {
-
+    /**
+     * Sql and params.
+     *
+     * @param filter $filter Filter.
+     * @param context $context Context.
+     * @return sql_and_params
+     */
     public static function sql_and_params(filter $filter, context $context): sql_and_params {
         if (!$filter->users || $filter->users == filter_options::BOTH_ENROLLED_AND_NOT_ENROLLED_USERS_WITH_ATTEMPTS) {
             $sqlandparams = sql_and_params::default($filter->adaptivequizid);
@@ -40,8 +49,13 @@ final class sql_resolver {
             return $sqlandparams;
         }
 
-        $enrolledjoin = get_enrolled_with_capabilities_join($context, '', 'mod/adaptivequiz:attempt',
-            $filter->groupid, self::resolve_active_enrolment_flag($filter->users, $filter->includeinactiveenrolments));
+        $enrolledjoin = get_enrolled_with_capabilities_join(
+            $context,
+            '',
+            'mod/adaptivequiz:attempt',
+            $filter->groupid,
+            self::resolve_active_enrolment_flag($filter->users, $filter->includeinactiveenrolments)
+        );
 
         if ($filter->users == filter_options::ENROLLED_USERS_WITH_NO_ATTEMPTS) {
             $sqlandparams = sql_and_params::for_enrolled_with_no_attempts($filter->adaptivequizid, $enrolledjoin);
@@ -60,12 +74,21 @@ final class sql_resolver {
         return $sqlandparams;
     }
 
+    /**
+     * Resolve active enrolment flag.
+     *
+     * @param int $usersoption Usersoption.
+     * @param int $includeinactiveenrolmentsoption Includeinactiveenrolmentsoption.
+     * @return bool
+     */
     private static function resolve_active_enrolment_flag(
         int $usersoption,
         int $includeinactiveenrolmentsoption
     ): bool {
-        if ($usersoption == filter_options::ENROLLED_USERS_WITH_NO_ATTEMPTS
-            || $usersoption == filter_options::ENROLLED_USERS_WITH_ATTEMPTS) {
+        if (
+            $usersoption == filter_options::ENROLLED_USERS_WITH_NO_ATTEMPTS
+            || $usersoption == filter_options::ENROLLED_USERS_WITH_ATTEMPTS
+        ) {
             return !$includeinactiveenrolmentsoption;
         }
 

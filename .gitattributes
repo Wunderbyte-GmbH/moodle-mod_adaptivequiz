@@ -1,0 +1,12 @@
+# Nicht ausliefern: reine Entwicklungs- und Testbestandteile.
+# Das neutrale Test-Catmodel und die Tests, die es voraussetzen, gehoeren
+# zur Entwicklung, nicht ins ausgelieferte Plugin.
+/catmodel/testcatmodel   export-ignore
+/tests/local/catmodel    export-ignore
+/tests/cat_session_test.php export-ignore
+/tools           export-ignore
+/doc            export-ignore
+/.github        export-ignore
+/.gitattributes export-ignore
+/.gitignore     export-ignore
+/PORTING_MATRIX.md export-ignore

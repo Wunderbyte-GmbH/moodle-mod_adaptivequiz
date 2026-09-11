@@ -22,6 +22,7 @@ use context_module;
 use mod_adaptivequiz\completion\custom_completion;
 use mod_adaptivequiz\event\attempt_completed;
 use mod_adaptivequiz\local\attempt\attempt_state;
+use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
 /**
@@ -30,11 +31,9 @@ use stdClass;
  * @package    mod_adaptivequiz
  * @copyright  2022 Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
- * @covers     \mod_adaptivequiz\attempt_state_change_observers::attempt_completed
  */
-class attempt_state_change_observers_test extends advanced_testcase {
-
+#[CoversClass(\mod_adaptivequiz\attempt_state_change_observers::class)]
+final class attempt_state_change_observers_test extends advanced_testcase {
     public function test_it_handles_completion_state(): void {
         global $DB;
 
@@ -74,6 +73,7 @@ class attempt_state_change_observers_test extends advanced_testcase {
         $attemptrecordsnapshot->measure = 1.94591;
         $attemptrecordsnapshot->timecreated = 1658524979;
         $attemptrecordsnapshot->timemodified = 1658525029;
+        $attemptrecordsnapshot->timefinished = null;
 
         $cm = get_coursemodule_from_instance('adaptivequiz', $adaptivequiz->id, $adaptivequiz->course);
         $context = context_module::instance($cm->id);

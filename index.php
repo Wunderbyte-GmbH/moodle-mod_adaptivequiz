@@ -15,19 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Prints an overview of all adaptive quiz instances in a course.
+ *
  * @copyright  2013 onwards Remote-Learner {@link http://www.remote-learner.ca/}
  * @copyright  2022 onwards Vitaly Potenko <potenkov@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__).'/../../config.php');
-require_once($CFG->dirroot.'/mod/adaptivequiz/lib.php');
+require_once(dirname(__FILE__) . '/../../config.php');
+require_once($CFG->dirroot . '/mod/adaptivequiz/lib.php');
 
 use mod_adaptivequiz\event\course_module_instance_list_viewed;
 
 $id = required_param('id', PARAM_INT);   // Course.
 
-$course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 
 require_course_login($course);
 
@@ -35,7 +37,7 @@ course_module_instance_list_viewed::create_from_course($course)->trigger();
 
 $coursecontext = context_course::instance($course->id);
 
-$PAGE->set_url('/mod/adaptivequiz/index.php', array('id' => $id));
+$PAGE->set_url('/mod/adaptivequiz/index.php', ['id' => $id]);
 $PAGE->set_title(format_string($course->fullname));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($coursecontext);
@@ -43,37 +45,39 @@ $PAGE->set_context($coursecontext);
 echo $OUTPUT->header();
 
 if (!$adaptivequizinstances = get_all_instances_in_course('adaptivequiz', $course)) {
-    notice(get_string('nonewmodules', 'adaptivequiz'), new moodle_url('/course/view.php', array('id' => $course->id)));
+    notice(get_string('nonewmodules', 'adaptivequiz'), new moodle_url('/course/view.php', ['id' => $course->id]));
 }
 
 $table = new html_table();
 if ($course->format == 'weeks') {
-    $table->head  = array(get_string('week'), get_string('name'));
-    $table->align = array('center', 'left');
+    $table->head  = [get_string('week'), get_string('name')];
+    $table->align = ['center', 'left'];
 } else if ($course->format == 'topics') {
-    $table->head  = array(get_string('topic'), get_string('name'));
-    $table->align = array('center', 'left', 'left', 'left');
+    $table->head  = [get_string('topic'), get_string('name')];
+    $table->align = ['center', 'left', 'left', 'left'];
 } else {
-    $table->head  = array(get_string('name'));
-    $table->align = array('left', 'left', 'left');
+    $table->head  = [get_string('name')];
+    $table->align = ['left', 'left', 'left'];
 }
 
 foreach ($adaptivequizinstances as $adaptivequizinstance) {
     if (!$adaptivequizinstance->visible) {
         $link = html_writer::link(
-            new moodle_url('/mod/adaptivequiz/view.php', array('id' => $adaptivequizinstance->coursemodule)),
+            new moodle_url('/mod/adaptivequiz/view.php', ['id' => $adaptivequizinstance->coursemodule]),
             format_string($adaptivequizinstance->name, true),
-            array('class' => 'dimmed'));
+            ['class' => 'dimmed']
+        );
     } else {
         $link = html_writer::link(
-            new moodle_url('/mod/adaptivequiz/view.php', array('id' => $adaptivequizinstance->coursemodule)),
-            format_string($adaptivequizinstance->name, true));
+            new moodle_url('/mod/adaptivequiz/view.php', ['id' => $adaptivequizinstance->coursemodule]),
+            format_string($adaptivequizinstance->name, true)
+        );
     }
 
     if ($course->format == 'weeks' || $course->format == 'topics') {
-        $table->data[] = array($adaptivequizinstance->section, $link);
+        $table->data[] = [$adaptivequizinstance->section, $link];
     } else {
-        $table->data[] = array($link);
+        $table->data[] = [$link];
     }
 }
 

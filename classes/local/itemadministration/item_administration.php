@@ -27,7 +27,6 @@ namespace mod_adaptivequiz\local\itemadministration;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface item_administration {
-
     /**
      * Decides whether the next item should be administered of the test must stop.
      *

@@ -25,14 +25,20 @@ namespace mod_adaptivequiz\local\report\users_attempts\user_preferences;
 
 use stdClass;
 
+/**
+ * User preferences.
+ */
 final class user_preferences {
-
+    /** Per page options. */
     public const PER_PAGE_OPTIONS = [5, 10, 15, 20, 25, 50];
 
+    /** Per page default. */
     public const PER_PAGE_DEFAULT = 15;
 
+    /** Show initials bar default. */
     public const SHOW_INITIALS_BAR_DEFAULT = 1;
 
+    /** Persistent filter default. */
     public const PERSISTENT_FILTER_DEFAULT = 0;
 
     /**
@@ -55,6 +61,14 @@ final class user_preferences {
      */
     private $filter;
 
+    /**
+     * Construct.
+     *
+     * @param int $perpage Perpage.
+     * @param int $showinitialsbar Showinitialsbar.
+     * @param int $persistentfilter Persistentfilter.
+     * @param ?filter_user_preferences $filter Filter.
+     */
     private function __construct(
         int $perpage,
         int $showinitialsbar,
@@ -74,34 +88,75 @@ final class user_preferences {
         $this->filter = $filter;
     }
 
+    /**
+     * Rows per page.
+     *
+     * @return int
+     */
     public function rows_per_page(): int {
         return $this->perpage;
     }
 
+    /**
+     * Show initials bar.
+     *
+     * @return bool
+     */
     public function show_initials_bar(): bool {
         return (bool) $this->showinitialsbar;
     }
 
+    /**
+     * Persistent filter.
+     *
+     * @return bool
+     */
     public function persistent_filter(): bool {
         return (bool) $this->persistentfilter;
     }
 
+    /**
+     * Filter.
+     *
+     * @return filter_user_preferences
+     */
     public function filter(): ?filter_user_preferences {
         return $this->filter;
     }
 
+    /**
+     * Returns whether filter preference.
+     *
+     * @return bool
+     */
     public function has_filter_preference(): bool {
         return $this->filter !== null;
     }
 
+    /**
+     * With filter preference.
+     *
+     * @param filter_user_preferences $preference Preference.
+     * @return self
+     */
     public function with_filter_preference(filter_user_preferences $preference): self {
         return new self($this->perpage, $this->showinitialsbar, $this->persistentfilter, $preference);
     }
 
+    /**
+     * Without filter preference.
+     *
+     * @return self
+     */
     public function without_filter_preference(): self {
         return new self($this->perpage, $this->showinitialsbar, $this->persistentfilter, null);
     }
 
+    /**
+     * As array.
+     *
+     * @return array
+     */
     public function as_array(): array {
         $return = ['perpage' => $this->perpage, 'showinitialsbar' => $this->showinitialsbar,
             'persistentfilter' => $this->persistentfilter];
@@ -110,6 +165,12 @@ final class user_preferences {
         return $return;
     }
 
+    /**
+     * From array.
+     *
+     * @param array $prefs Prefs.
+     * @return self
+     */
     public static function from_array(array $prefs): self {
         $filter = array_key_exists('filter', $prefs) ? $prefs['filter'] : null;
 
@@ -121,10 +182,21 @@ final class user_preferences {
         );
     }
 
+    /**
+     * From plain object.
+     *
+     * @param stdClass $object Object.
+     * @return self
+     */
     public static function from_plain_object(stdClass $object): self {
         return self::from_array((array) $object);
     }
 
+    /**
+     * Defaults.
+     *
+     * @return self
+     */
     public static function defaults(): self {
         return new self(self::PER_PAGE_DEFAULT, self::SHOW_INITIALS_BAR_DEFAULT, self::PERSISTENT_FILTER_DEFAULT, null);
     }

@@ -24,6 +24,9 @@
 
 namespace mod_adaptivequiz\local\questionanalysis\statistics;
 
+/**
+ * Percent correct statistic result.
+ */
 class percent_correct_statistic_result implements question_statistic_result {
     /** @var float $fraction  */
     protected $fraction = null;
@@ -34,7 +37,7 @@ class percent_correct_statistic_result implements question_statistic_result {
      * @param float $fraction
      * @return void
      */
-    public function __construct ($fraction) {
+    public function __construct($fraction) {
         $this->fraction = $fraction;
     }
 
@@ -43,17 +46,16 @@ class percent_correct_statistic_result implements question_statistic_result {
      *
      * @return mixed string or numeric
      */
-    public function sortable () {
+    public function sortable() {
         return $this->fraction;
     }
 
     /**
      * A printable version of the result.
      *
-     * @param numeric $result
      * @return mixed string or numeric
      */
-    public function printable () {
-        return round($this->fraction * 100).'%';
+    public function printable() {
+        return round($this->fraction * 100) . '%';
     }
 }

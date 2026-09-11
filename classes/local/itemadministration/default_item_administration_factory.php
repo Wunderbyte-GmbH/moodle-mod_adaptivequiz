@@ -16,27 +16,26 @@
 
 namespace mod_adaptivequiz\local\itemadministration;
 
-require_once($CFG->dirroot .'/mod/adaptivequiz/locallib.php');
-
 use mod_adaptivequiz\local\attempt;
 use question_usage_by_activity;
 use stdClass;
 
 /**
- * Default implementation of the item administration factory.
+ * Hands out the item administration of the built-in adaptive algorithm.
+ *
+ * Used whenever an activity has no CAT model configured.
  *
  * @package    mod_adaptivequiz
- * @copyright  2023 Vitaly Potenko <potenkov@gmail.com>
+ * @copyright  2026 onwards Ralf Erlebach
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class default_item_administration_factory implements item_administration_factory {
-
     /**
-     * Implementation of the interface.
+     * Returns the item administration of the built-in algorithm.
      *
-     * @param question_usage_by_activity $quba
-     * @param attempt $attempt
-     * @param stdClass $adaptivequiz Apart from db fields, extra 'cm' and 'context' properties are present.
+     * @param question_usage_by_activity $quba The question usage of the attempt.
+     * @param attempt $attempt The attempt being administered.
+     * @param stdClass $adaptivequiz The activity instance record.
      * @return item_administration
      */
     public function item_administration_implementation(
@@ -44,6 +43,6 @@ final class default_item_administration_factory implements item_administration_f
         attempt $attempt,
         stdClass $adaptivequiz
     ): item_administration {
-        return new default_item_administration($quba, $attempt, $adaptivequiz);
+        return new default_item_administration($attempt);
     }
 }

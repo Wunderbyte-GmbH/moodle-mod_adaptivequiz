@@ -26,8 +26,10 @@ namespace mod_adaptivequiz\local\catmodel\form;
 
 use MoodleQuickForm;
 
+/**
+ * Catmodel mod form modifier.
+ */
 interface catmodel_mod_form_modifier {
-
     /**
      * Called by mod_form in definition_after_data() method.
      *
